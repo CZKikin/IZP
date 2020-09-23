@@ -1,21 +1,34 @@
 #include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(int argc, char **argv){
+char delim = ' ';
+
+void
+print_usage(){
+    printf("Usage: ./sheet -d <delim> <table command> | "\
+           "-d <delim> <line select> <data command>\n\r");
+}
+
+int
+main(int argc, char **argv){
     int opt;
-    int perim_chosen = 0;
-    while ((opt = getopt(argc, argv, "d")) != -1){
+    int flag_chosen = 0;
+    while ((opt = getopt(argc, argv, "d:h")) != -1){
         switch(opt){
             case 'd':
-                if(!perim_chosen){
-                    printf("Parameter d\n\r");
-                    perim_chosen = 1;
+                if(!flag_chosen){
+                    printf("Parameter -d is %c\n\r", optarg[0]);
+                    delim = optarg[0];
+                    flag_chosen = 1;
                 } else {
-                    printf("Parameter d has already been chosen\r\n");
+                    printf("Perimiter can be set only once!\r\n");
+                    exit(-1);
                 }
                 break;
             default:
-                printf("Error in parsing args\r\n");
+                print_usage();
+                break;
         }
     }
     return 0;
