@@ -14,7 +14,13 @@ int
 main(int argc, char **argv){
     int opt;
     int flag_chosen = 0;
-    while ((opt = getopt(argc, argv, "d:h")) != -1){
+     
+    if (argc == 1){
+        print_usage();
+        return 0;
+    }
+
+   while ((opt = getopt(argc, argv, "d:")) != -1){
         switch(opt){
             case 'd':
                 if(!flag_chosen){
@@ -26,6 +32,7 @@ main(int argc, char **argv){
                     exit(-1);
                 }
                 break;
+
             default:
                 print_usage();
                 break;
