@@ -1,6 +1,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define FILE_DATA_LEN (4096)
 
@@ -20,7 +21,7 @@ struct params{
     char file_data[FILE_DATA_LEN];
 };
 
-struct params user_params = { 
+struct params user_params = {
     .delim = ' '
 };
 
@@ -49,6 +50,25 @@ scan_input(){
     }
 }
 
+int //vrati pocet sloupcu v souboru
+count_collumns(){
+    int count = 0;
+
+    for(int i = 0; user_params.file_data[i] != '\n'; i++){
+        if(user_params.file_data[i] == ':')
+        {
+            count++; //spocita pocet dvojtecek(:)
+        }
+    }
+    return count+1;
+}
+
+int //vlozi novy radek na konec souboru
+arow(){
+    //printf("%d\n", count_collumns());
+    return 0;
+}
+
 int
 main(int argc, char **argv){
     int opt, perim_chosen = 0, test_flag = 0;
@@ -59,6 +79,7 @@ main(int argc, char **argv){
     }
     
     while ((opt = getopt(argc, argv, "d:t")) != -1){
+
         switch(opt){
             case 'd':
                 if(!perim_chosen){
