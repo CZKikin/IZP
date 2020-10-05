@@ -12,6 +12,6 @@ jobs:
 
     steps:
     - name: make
-      run: make
+      run: ls ; make
     - name: make debug
       run: make dbug
