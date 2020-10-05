@@ -123,7 +123,6 @@ struct params user_params = {
 };
 
 int (*get_func_pt())(){
-    /*TODO: Zarovnat na stejnou velikost(11) */
     for (int i=0; i<31; i++){
         if (strcmp(user_params.command, commands[i]) == 0)
             return functions[i];
