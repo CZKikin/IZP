@@ -14,4 +14,4 @@ jobs:
     - name: make
       run: make
     - name: make debug
-      run: make dbug
+      run: make debug
