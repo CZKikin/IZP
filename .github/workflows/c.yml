@@ -7,11 +7,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: make
-      run: ls ; make
+      run: make
     - name: make debug
       run: make dbug
