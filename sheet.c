@@ -125,7 +125,7 @@ struct params user_params = {
 int (*get_func_pt())(){
     /*TODO: Zarovnat na stejnou velikost(11) */
     for (int i=0; i<31; i++){
-        if (user_params.command == commands[i])
+        if (strcmp(user_params.command, commands[i]) == 0)
             return functions[i];
     }
     printf("Invalid command\r\n");
@@ -173,6 +173,7 @@ count_collumns(){
 
 int
 irow(){
+    printf("Ty pyco ono to faka!\r\n");
     return -1;
 }
 int
@@ -336,6 +337,20 @@ main(int argc, char **argv){
 
     }
 
+    if (optind < argc)
+    {
+        int arguments_index = 0;
+        strncpy(user_params.command, argv[optind], strlen(argv[optind]));
+        for (int i = optind+1; i<argc; i++){
+            user_params.arguments[arguments_index] = argv[i][0];
+            arguments_index++;
+        }
+                
+    } else {
+        printf("Missing command\r\n");
+        return -1;
+    }
+    
     scan_input();
     printf("%s", user_params.file_data);
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+#Jsem línej kokot psát command
+gdb --tui sheet
