@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #define FILE_DATA_LEN (4096)
 
@@ -122,7 +123,9 @@ struct params user_params = {
     .delim = ' '
 };
 
-int (*get_func_pt())(){
+// Funkce, která vrací ukazatel na funkci
+int 
+(*get_func_pt())(){
     for (int i=0; i<31; i++){
         if (strcmp(user_params.command, commands[i]) == 0)
             return functions[i];
@@ -133,13 +136,21 @@ int (*get_func_pt())(){
 
 int 
 run_tests(){
+    printf("----TESTING----\r\n");
+    int (*chosen_command)();
     scan_input();
-    if (user_params.file_data[FILE_DATA_LEN] != '\0'){
-        printf("Buffer overflow!\r\n");
-        return -1;
-    }
 
-    return 0;
+    assert(user_params.file_data[FILE_DATA_LEN] == '\0');
+
+    chosen_command = get_func_pt();
+    assert(chosen_command  != NULL);
+
+    int result;
+    result = chosen_command();
+    assert(result == 0);
+
+    printf("----TESTS SUCCESSFUL----\r\n");
+    return 0; 
 }
 
 void
@@ -289,8 +300,9 @@ contains(){
 }
 
 int //vlozi novy radek na konec souboru
-arow(){
-    //printf("%d\n", count_collumns());
+arow(){ //TODO: zjisti zda je potreba nazacatku printovat \n
+    char new_line[2] = {user_params.delim,'\n'};
+    strncat(user_params.file_data, new_line, 2); 
     return 0;
 }
 
@@ -309,7 +321,6 @@ main(int argc, char **argv){
         switch(opt){
             case 'd':
                 if(!perim_chosen){
-                    printf("Parameter -d is %c\n\r", optarg[0]);
                     user_params.delim = optarg[0];
                     perim_chosen = 1;
                 } else {
@@ -320,12 +331,7 @@ main(int argc, char **argv){
 
             case 't':
                 if (!test_flag){
-                    if (run_tests() == 0)
-                        printf("Test successful\r\n");
-                    else
-                        return -1;
-                    return 0;
-                    printf("Unreachable statement\r\n");
+                    test_flag = 1;
                 }
                 break;
 
@@ -346,15 +352,22 @@ main(int argc, char **argv){
         }
                 
     } else {
-        printf("Missing command\r\n");
+        printf("Missing command or arguments\r\n");
         return -1;
+    }
+
+    if (test_flag){
+        result = run_tests();
+        return result;
     }
     
     scan_input();
-    printf("%s", user_params.file_data);
 
     if ((chosen_command = get_func_pt(user_params.command)) != NULL)
         result = chosen_command();
+
+    if (result == 0)
+        printf("%s", user_params.file_data);
 
     return result;
 }
