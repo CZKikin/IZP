@@ -168,14 +168,20 @@ scan_input(){
     }
 }
 
+int
+check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
+    if (user_params.file_data[FILE_DATA_LEN - (size_needed - 1)] != '\0')
+        return -1; /* There is not enough space for that operation */
+    return 0;
+}
 int //vrati pocet sloupcu v souboru
 count_collumns(){
     int count = 0;
 
     for(int i = 0; user_params.file_data[i] != '\n'; i++){
-        if(user_params.file_data[i] == ':')
+        if(user_params.file_data[i] == user_params.delim)
         {
-            count++; //spocita pocet dvojtecek(:)
+            count++; //spocita pocet rozdělovačů 
         }
     }
     return count+1;
@@ -300,9 +306,25 @@ contains(){
 }
 
 int //vlozi novy radek na konec souboru
-arow(){ //TODO: zjisti zda je potreba nazacatku printovat \n
-    char new_line[2] = {user_params.delim,'\n'};
-    strncat(user_params.file_data, new_line, 2); 
+arow(){ 
+    char new_line[3] = {'\n', user_params.delim, '\n'}; 
+    /* Check if there is enogh space to add new line */
+    if (check_for_space(3) != 0)
+        return -1;
+
+    for (int i=0; i<FILE_DATA_LEN - 1; i++){
+        if (user_params.file_data[i] == '\0'){ /* finds the end of a string */
+
+            if (user_params.file_data[i-1] == '\n'){
+                new_line[0] = new_line[1]; 
+                new_line[1] = new_line[2];
+                new_line[2] = '\0';
+            }
+               
+        }
+    }
+
+    strncat(user_params.file_data, new_line, 3); 
     return 0;
 }
 
