@@ -187,9 +187,50 @@ count_collumns(){
     return count+1;
 }
 
+int //vrati index konce(\n) zvoleneho radku
+get_row_end(int cbsr){
+    //cbsr - collums before selected row
+
+    int index = 0;
+    int q = 0; //pocet nalezenych rozdelovacu
+    for(int i = 0; user_params.file_data[i] != '\0'; i++){
+        if(q == cbsr){
+            //vyhledani konce radku
+            for(int t = i; user_params.file_data[t] != '\n'; t++){
+                index = t;
+            }
+            return index+1;
+        }
+
+        if(user_params.file_data[i] == user_params.delim)
+        {
+            q++;
+        }
+    }
+
+    return -1;
+
+}
+
 int
 irow(){
-    printf("arg:%s\n",user_params.arguments);
+    int selected_row = atoi(user_params.arguments);
+    printf("arg:%d\n",selected_row);
+
+    //zjistim pocet : do radku R (Rxpocet :), odectu R, a budu hledat \n, za \n pridam pocet : a nakonec \n, tim mi vznikne novy radek
+
+    //index konce radku za ktery pridam radek
+    int index = get_row_end(count_collumns()*(selected_row-1));
+
+    printf("index:%d\n",index);
+
+    char start[index], end[FILE_DATA_LEN-index];
+    strncpy(start,user_params.file_data,index);
+    strcpy(end,&user_params.file_data[index]);
+
+    printf("\n%s\n", start);
+    printf("\n%s\n", end);
+
     return 0;
 }
 int
