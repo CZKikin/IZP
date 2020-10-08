@@ -46,13 +46,13 @@ int contains();
  * který nám byl předán */
 
 char commands[31][11] = {
-    "irow",        /*0*/ 
-    "arow",        /*1*/ 
-    "drow",        /*2*/ 
+    "irow",        /*0*/
+    "arow",        /*1*/
+    "drow",        /*2*/
     "drows",       /*4*/
-    "icol",        /*5*/ 
+    "icol",        /*5*/
     "acol",        /*6*/
-    "dcol",        /*7*/ 
+    "dcol",        /*7*/
     "dcols",       /*8*/
     "cset",        /*9*/
     "tolower",     /*10*/
@@ -124,7 +124,7 @@ struct params user_params = {
 };
 
 // Funkce, která vrací ukazatel na funkci
-int 
+int
 (*get_func_pt())(){
     for (int i=0; i<31; i++){
         if (strcmp(user_params.command, commands[i]) == 0)
@@ -134,7 +134,7 @@ int
     return NULL;
 }
 
-int 
+int
 run_tests(){
     printf("----TESTING----\r\n");
     int (*chosen_command)();
@@ -150,7 +150,7 @@ run_tests(){
     assert(result == 0);
 
     printf("----TESTS SUCCESSFUL----\r\n");
-    return 0; 
+    return 0;
 }
 
 void
@@ -181,16 +181,57 @@ count_collumns(){
     for(int i = 0; user_params.file_data[i] != '\n'; i++){
         if(user_params.file_data[i] == user_params.delim)
         {
-            count++; //spocita pocet rozdělovačů 
+            count++; //spocita pocet rozdělovačů
         }
     }
     return count+1;
 }
 
+int //vrati index konce(\n) zvoleneho radku
+get_row_end(int cbsr){
+    //cbsr - collums before selected row
+
+    int index = 0;
+    int q = 0; //pocet nalezenych rozdelovacu
+    for(int i = 0; user_params.file_data[i] != '\0'; i++){
+        if(q == cbsr){
+            //vyhledani konce radku
+            for(int t = i; user_params.file_data[t] != '\n'; t++){
+                index = t;
+            }
+            return index+1;
+        }
+
+        if(user_params.file_data[i] == user_params.delim)
+        {
+            q++;
+        }
+    }
+
+    return -1;
+
+}
+
 int
 irow(){
-    printf("Ty pyco ono to faka!\r\n");
-    return -1;
+    int selected_row = atoi(user_params.arguments);
+    printf("arg:%d\n",selected_row);
+
+    //zjistim pocet : do radku R (Rxpocet :), odectu R, a budu hledat \n, za \n pridam pocet : a nakonec \n, tim mi vznikne novy radek
+
+    //index konce radku za ktery pridam radek
+    int index = get_row_end(count_collumns()*(selected_row-1));
+
+    printf("index:%d\n",index);
+
+    char start[index], end[FILE_DATA_LEN-index];
+    strncpy(start,user_params.file_data,index);
+    strcpy(end,&user_params.file_data[index]);
+
+    printf("\n%s\n", start);
+    printf("\n%s\n", end);
+
+    return 0;
 }
 int
 drow(){
@@ -306,8 +347,8 @@ contains(){
 }
 
 int //vlozi novy radek na konec souboru
-arow(){ 
-    char new_line[3] = {'\n', user_params.delim, '\n'}; 
+arow(){
+    char new_line[3] = {'\n', user_params.delim, '\n'};
     /* Check if there is enogh space to add new line */
     if (check_for_space(3) != 0)
         return -1;
@@ -316,15 +357,15 @@ arow(){
         if (user_params.file_data[i] == '\0'){ /* finds the end of a string */
 
             if (user_params.file_data[i-1] == '\n'){
-                new_line[0] = new_line[1]; 
+                new_line[0] = new_line[1];
                 new_line[1] = new_line[2];
                 new_line[2] = '\0';
             }
-               
+
         }
     }
 
-    strncat(user_params.file_data, new_line, 3); 
+    strncat(user_params.file_data, new_line, 3);
     return 0;
 }
 
@@ -337,7 +378,7 @@ main(int argc, char **argv){
         print_usage();
         return 0;
     }
-    
+
     while ((opt = getopt(argc, argv, "d:t")) != -1){
 
         switch(opt){
@@ -368,11 +409,11 @@ main(int argc, char **argv){
     {
         int arguments_index = 0;
         strncpy(user_params.command, argv[optind], strlen(argv[optind]));
-        for (int i = optind+1; i<argc; i++){
-            user_params.arguments[arguments_index] = argv[i][0];
+        for (int i = 0; i<(int)strlen(argv[optind+1]); i++){
+            user_params.arguments[arguments_index] = argv[optind+1][i];
             arguments_index++;
         }
-                
+
     } else {
         printf("Missing command or arguments\r\n");
         return -1;
@@ -382,7 +423,7 @@ main(int argc, char **argv){
         result = run_tests();
         return result;
     }
-    
+
     scan_input();
 
     if ((chosen_command = get_func_pt(user_params.command)) != NULL)
