@@ -1,3 +1,4 @@
 #!/bin/sh
 #Jsem línej kokot psát command
-gdb --tui sheet
+make debug || exit 1
+gdb --tui sheet || gdb sheet
