@@ -262,10 +262,41 @@ acol(int last_line){
     return 0;
 }
 
-int //odstrani sloupce
+int //odstrani sloupec N
 dcol(int last_line){
     (void)last_line;
-    return -1;
+    int selected_col = atoi(user_params.arguments[0]);
+
+    int cols = count_collumns();
+    int index = get_delim_index(selected_col);
+    if(cols == 1){
+        memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
+        return 0;
+    }
+    else {
+        printf("col%dscol%din%d",cols,selected_col,index);
+        if(cols == selected_col){
+            index=get_delim_index(selected_col-1);
+
+            char start[index+1];
+            memset(start, 0, sizeof start); //vynulovani
+
+            strncpy(start,user_params.line_data,index);
+
+
+            memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
+
+
+            strcpy(user_params.line_data,start);
+
+
+        }
+    }
+
+
+
+
+    return 0;
 }
 int
 dcols(int last_line){
@@ -461,7 +492,7 @@ int //vrati pocet sloupcu v souboru
 count_collumns(){
     int count = 0;
 
-    for(int i = 0; user_params.line_data[i] != '\n'; i++){
+    for(int i = 0; user_params.line_data[i] != '\0'; i++){
         if(user_params.line_data[i] == user_params.delim)
         {
             count++; //spocita pocet rozdělovačů
