@@ -15,6 +15,7 @@ int (*get_func_pt(char *command))();
 int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
+int get_delim_index(int order);
 //int get_row_end(int cbsr);
 int (*find_command())();
 void find_arguments(int argc, char **argv);
@@ -200,18 +201,53 @@ drows(int last_line){
     return 0;
 }
 
+//vrati index n-teho delimu
+int get_delim_index(int order){
+    int appear = 0; //vyskyt delimu v radku
+    for(int i = 0; i<LINE_DATA_LEN; i++){
+        if(user_params.line_data[i] == user_params.delim){
+            appear++;
+        }
+        //pokud je nalezeny delim tolikaty kolikaty chceme, vratime index
+        if(appear == order){
+            return i;
+        }
+    }
+    return -1;
+}
+
 int //vlozi prazdny sloupec pred sloupec C
 icol(int last_line){
     (void)last_line;
+    //printf("ahoj");
 
     //int selected_col = atoi(user_params.arguments[0]);
 
     //udelat fci co vrati index sloupce kam mame pridat delim
 
-    int edit_size = 1; //delka delim
+    /*int edit_size = 1; //delka delim
+
     if (check_for_space(edit_size) != 0)
         return -1;
+*/
+    //printf("ahoj");
+    int index = get_delim_index(atoi(user_params.arguments[0]));
 
+    if(index == -1)
+        return -1;
+
+    char start[index+1], end[LINE_DATA_LEN-index];
+    //strncpy(dest, src + beginIndex, endIndex - beginIndex);
+
+    strncpy(start,user_params.line_data,index);
+    strcpy(end,user_params.line_data + index);
+    printf("END%sEND\n", end);
+    start[index]=':';
+    printf("START%sSTART\n", start);
+    strcat(start,end);
+    strcpy(user_params.line_data,start);
+
+    //printf("x%s\n", user_params.line_data);
 
 
     return 0;
