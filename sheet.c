@@ -225,11 +225,11 @@ icol(int last_line){
 
     //udelat fci co vrati index sloupce kam mame pridat delim
 
-    /*int edit_size = 1; //delka delim
+    int edit_size = 1; //delka delim
 
     if (check_for_space(edit_size) != 0)
         return -1;
-*/
+
     //printf("ahoj");
     int index = get_delim_index(atoi(user_params.arguments[0]));
 
@@ -241,11 +241,13 @@ icol(int last_line){
 
     strncpy(start,user_params.line_data,index);
     strcpy(end,user_params.line_data + index);
-    printf("END%sEND\n", end);
-    start[index]=':';
-    printf("START%sSTART\n", start);
-    strcat(start,end);
-    strcpy(user_params.line_data,start);
+    //printf("END%sEND\n", end);
+    start[index]=user_params.delim;
+    printf("START%cSTART\n", start[index]);
+    char full[LINE_DATA_LEN+edit_size];
+    strcat(full,start);
+    strcat(full,end);
+    strcpy(user_params.line_data,full);
 
     //printf("x%s\n", user_params.line_data);
 
