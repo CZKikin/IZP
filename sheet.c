@@ -409,7 +409,7 @@ scan_input(){
 
 int
 check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
-    if (user_params.line_data[LINE_DATA_LEN - (size_needed - 1)] != '\0')
+    if (user_params.line_data[(LINE_DATA_LEN - 1) - size_needed] != '\0')
         return -1;
     return 0;
 }
