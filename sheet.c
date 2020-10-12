@@ -126,12 +126,14 @@ struct params{
     char delim;
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
     int arg_count;
+    int (*second_command()) // Used for line select operations
     char line_data[LINE_DATA_LEN];
     int line_number;
 };
 
 struct params user_params = {
-    .delim = ' '
+    .delim = ' ',
+    .second_command = NULL
 };
 
 int
@@ -368,9 +370,14 @@ rcount(int last_line){
     return -1;
 }
 int
-rows(int last_line){
-    (void)last_line;
-    return -1;
+rows(){
+    if (user_params.second_command == NULL)
+    	validate_second_command();
+    	user_params.second_command = find_command();
+        if (user_params.second_command == NULL){
+	    printf("Missing data command\r\n");
+	    return -1
+	}
 }
 int
 beginswith(int last_line){
@@ -399,6 +406,9 @@ arow(int last_line){
     }
     return 0;
 }
+
+int
+validate_second_function
 
 int
 (*get_func_pt(char *command))(){
