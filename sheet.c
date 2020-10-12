@@ -267,6 +267,9 @@ dcol(int last_line){
     (void)last_line;
     int selected_col = atoi(user_params.arguments[0]);
 
+    if(selected_col>count_collumns())
+        return -1;
+
     int cols = count_collumns();
     int index = get_delim_index(selected_col);
     if(cols == 1){
@@ -274,33 +277,82 @@ dcol(int last_line){
         return 0;
     }
     else {
-        printf("col%dscol%din%d",cols,selected_col,index);
         if(cols == selected_col){
-            index=get_delim_index(selected_col-1);
-
             char start[index+1];
             memset(start, 0, sizeof start); //vynulovani
+            strncpy(start,user_params.line_data,index);
+            memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
+            strcpy(user_params.line_data,start);
+        }
+
+        else{
+            int afterIndex = get_delim_index(selected_col+1);
+            //smazani textu mezi <index a afterindex)
+
+            char start[index+1], end[get_len(user_params.line_data)-index+1];
+            memset(start, 0, sizeof start); //vynulovani
+            memset(end, 0, sizeof end);
+
+            strncpy(start,user_params.line_data,index);
+            strcpy(end,user_params.line_data + afterIndex);
+
+            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
+
+            memset(full, 0, sizeof full);
+            strcat(full,start);
+            strcat(full,end);
+
+            strcpy(user_params.line_data,full);
+        }
+    }
+    return 0;
+}
+
+int //smaze sloupce mezi N a M
+dcols(int last_line){
+    (void)last_line;
+
+    if(!last_line){
+
+        int selected_col1 = atoi(user_params.arguments[0]);
+        int selected_col2 = atoi(user_params.arguments[1]);
+
+        if(selected_col1>selected_col2) //N<=M
+            return -1;
+
+        if(selected_col2>count_collumns())
+            return -1;
+
+        int index = get_delim_index(selected_col1);
+        int afterIndex = get_delim_index(selected_col2+1);
+        printf("i%da%d",index,afterIndex);
+        //smazani textu mezi <index a afterindex)
+
+        if(index!=0){
+            char start[index+1], end[get_len(user_params.line_data)-index+1];
+
+            memset(start, 0, sizeof start); //vynulovani
+            memset(end, 0, sizeof end);
+
 
             strncpy(start,user_params.line_data,index);
 
+            strcpy(end,user_params.line_data + afterIndex);
 
-            memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
+            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
 
+            memset(full, 0, sizeof full);
 
-            strcpy(user_params.line_data,start);
+            strcat(full,start);
+            strcat(full,end);
 
+            strcpy(user_params.line_data,full);
+        }
+        else{
 
         }
+        return 0;
     }
-
-
-
-
-    return 0;
-}
-int
-dcols(int last_line){
-    (void)last_line;
     return -1;
 }
 int
