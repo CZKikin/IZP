@@ -15,7 +15,7 @@ int (*get_func_pt(char *command))();
 int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
-int get_row_end(int cbsr);
+//int get_row_end(int cbsr);
 int (*find_command())();
 void find_arguments(int argc, char **argv);
 int irow(int last_line);
@@ -124,6 +124,7 @@ struct params{
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
     int arg_count;
     char line_data[LINE_DATA_LEN];
+    int line_number;
 };
 
 struct params user_params = {
@@ -134,44 +135,94 @@ int
 irow(int last_line){
     (void)last_line; //pičuje compiler a ja potřebuju testovat :)
     int selected_row = atoi(user_params.arguments[0]);
-    printf("arg:%d\n",selected_row);
+    //printf("arg:%d\n",selected_row);
 
     //zjistim pocet : do radku R (Rxpocet :), odectu R, a budu hledat \n, za \n pridam pocet : a nakonec \n, tim mi vznikne novy radek
 
     //index konce radku za ktery pridam radek
-    int index = get_row_end(count_collumns()*(selected_row-1));
+    //int index = get_row_end(count_collumns()*(selected_row-1));
 
-    printf("index:%d\n",index);
+    /*printf("index:%d\n",index);*/
+    //printf("line_number:%d\n",user_params.line_number);
 
-    char start[index], end[LINE_DATA_LEN-index];
+    if(user_params.line_number == selected_row){
+        int edit_size = count_collumns()-1;
+        if (check_for_space(edit_size) != 0)
+            return -1;
+
+        for(int i = 0; i<edit_size; i++){
+            printf("%c",user_params.delim);
+        }
+
+        printf("\n");
+
+
+    }
+    /*char start[index], end[LINE_DATA_LEN-index];
     strncpy(start,user_params.line_data,index);
     strcpy(end,&user_params.line_data[index]);
 
     printf("\n%s\n", start);
     printf("\n%s\n", end);
-
+*/
     return 0;
 }
 int
 drow(int last_line){
     (void)last_line;
-    return -1;
+
+    int selected_row = atoi(user_params.arguments[0]);
+
+    if(user_params.line_number == selected_row){
+
+        user_params.line_data[0] = '\0';
+
+    }
+
+    return 0;
 }
 int
 drows(int last_line){
     (void)last_line;
-    return -1;
+
+    int selected_row1 = atoi(user_params.arguments[0]);
+    int selected_row2 = atoi(user_params.arguments[1]);
+
+    if(selected_row1>selected_row2) //N<=M
+        return -1;
+
+    if(user_params.line_number >= selected_row1 && user_params.line_number <= selected_row2){
+
+        user_params.line_data[0] = '\0';
+
+    }
+
+    return 0;
 }
-int
+
+int //vlozi prazdny sloupec pred sloupec C
 icol(int last_line){
     (void)last_line;
-    return -1;
+
+    //int selected_col = atoi(user_params.arguments[0]);
+
+    //udelat fci co vrati index sloupce kam mame pridat delim
+
+    int edit_size = 1; //delka delim
+    if (check_for_space(edit_size) != 0)
+        return -1;
+
+
+
+    return 0;
 }
+
 int
 acol(int last_line){
     (void)last_line;
     return -1;
 }
+
 int
 dcol(int last_line){
     (void)last_line;
@@ -349,8 +400,9 @@ scan_input(){
             (i < LINE_DATA_LEN); i++){
       user_params.line_data[i] = ch;
     }
+    user_params.line_number++;
     if (ch == EOF)
-        return 1; 
+        return 1;
 
     return 0;
 }
@@ -358,7 +410,7 @@ scan_input(){
 int
 check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
     if (user_params.line_data[LINE_DATA_LEN - (size_needed - 1)] != '\0')
-        return -1; 
+        return -1;
     return 0;
 }
 
@@ -375,6 +427,7 @@ count_collumns(){
     return count+1;
 }
 
+/*
 int //vrati index konce(\n) zvoleneho radku
 get_row_end(int cbsr){
     //cbsr - collums before selected row
@@ -398,7 +451,7 @@ get_row_end(int cbsr){
 
     return -1;
 
-}
+}*/
 
 int
 (*find_command())(){
@@ -407,9 +460,9 @@ int
     for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
         if ((chosen_command = get_func_pt(user_params.arguments[i])) != NULL){
             for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
-                strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN); 
+                strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
             return chosen_command;
-      
+
         }
     }
     return NULL;
@@ -418,7 +471,7 @@ int
 void
 find_arguments(int argc, char **argv){
     for (int i = optind, j = 0; i<argc; i++,j++){
-        strncpy(user_params.arguments[j], argv[i], ARG_LEN); 
+        strncpy(user_params.arguments[j], argv[i], ARG_LEN);
     }
 }
 
@@ -439,6 +492,7 @@ main(int argc, char **argv){
             case 'd':
                 if(!perim_chosen){
                     user_params.delim = optarg[0];
+                    user_params.line_number = 0;
                     perim_chosen = 1;
                 } else {
                     printf("Perimiter can be set only once,"\
