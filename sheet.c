@@ -9,12 +9,15 @@
 #define LINE_DATA_LEN (10240)
 #define ARG_LEN (100)
 
+int delims;
+
 void print_usage();
 int scan_input();
 int (*get_func_pt(char *command))();
 int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
+int get_delim_index(int order);
 //int get_row_end(int cbsr);
 int (*find_command())();
 void find_arguments(int argc, char **argv);
@@ -135,15 +138,6 @@ int
 irow(int last_line){
     (void)last_line; //pičuje compiler a ja potřebuju testovat :)
     int selected_row = atoi(user_params.arguments[0]);
-    //printf("arg:%d\n",selected_row);
-
-    //zjistim pocet : do radku R (Rxpocet :), odectu R, a budu hledat \n, za \n pridam pocet : a nakonec \n, tim mi vznikne novy radek
-
-    //index konce radku za ktery pridam radek
-    //int index = get_row_end(count_collumns()*(selected_row-1));
-
-    /*printf("index:%d\n",index);*/
-    //printf("line_number:%d\n",user_params.line_number);
 
     if(user_params.line_number == selected_row){
         int edit_size = count_collumns()-1;
@@ -158,13 +152,7 @@ irow(int last_line){
 
 
     }
-    /*char start[index], end[LINE_DATA_LEN-index];
-    strncpy(start,user_params.line_data,index);
-    strcpy(end,&user_params.line_data[index]);
 
-    printf("\n%s\n", start);
-    printf("\n%s\n", end);
-*/
     return 0;
 }
 int
@@ -200,30 +188,81 @@ drows(int last_line){
     return 0;
 }
 
+//vrati index n-teho delimu
+int get_delim_index(int order){
+    int appear = 0; //vyskyt delimu v radku
+    for(int i = 0; i<LINE_DATA_LEN; i++){
+        if(user_params.line_data[i] == user_params.delim){
+            appear++;
+        }
+        //pokud je nalezeny delim tolikaty kolikaty chceme, vratime index
+        if(appear == order-1){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int //vrati delku pole
+get_len(char *arr){
+    int q = 0; //pocet znaku
+    for(int i = 0; arr[i] != '\0'; i++){
+            q++;
+    }
+    return q;
+}
+
 int //vlozi prazdny sloupec pred sloupec C
 icol(int last_line){
     (void)last_line;
 
-    //int selected_col = atoi(user_params.arguments[0]);
-
-    //udelat fci co vrati index sloupce kam mame pridat delim
-
     int edit_size = 1; //delka delim
+
     if (check_for_space(edit_size) != 0)
         return -1;
 
+    //ziska index n-teho delimu
+    int index = get_delim_index(atoi(user_params.arguments[0]));
 
+    if(index == -1)
+        return -1;
 
+    //vsude +1 nez je potreba pro \0
+    char start[index+2], end[get_len(user_params.line_data)-index+1];
+    memset(start, 0, sizeof start); //vynulovani
+    memset(end, 0, sizeof end);
+
+    strncpy(start,user_params.line_data,index);
+    strcpy(end,user_params.line_data + index);
+
+    start[index]=user_params.delim;
+
+    char full[get_len(user_params.line_data)+edit_size+1];
+
+    memset(full, 0, sizeof full);
+    strcat(full,start);
+    strcat(full,end);
+
+    strcpy(user_params.line_data,full);
     return 0;
 }
 
 int
 acol(int last_line){
     (void)last_line;
-    return -1;
+    int edit_size = 1; //delka delim
+
+    if (check_for_space(edit_size) != 0)
+        return -1;
+
+    if (last_line)
+        return -1;
+
+    user_params.line_data[get_len(user_params.line_data)]=user_params.delim;
+    return 0;
 }
 
-int
+int //odstrani sloupce
 dcol(int last_line){
     (void)last_line;
     return -1;
@@ -350,10 +389,13 @@ arow(int last_line){
         return 0;
     } else {
 
-        if (check_for_space(1) != 0)
+        if (check_for_space(delims) != 0)
             return -1;
 
-        sprintf(user_params.line_data, "%c", user_params.delim);
+        for(int i = 0; i<delims; i++){
+            printf("%c", user_params.delim);
+        }
+
     }
     return 0;
 }
@@ -399,11 +441,12 @@ scan_input(){
     for(int i=0; ((ch = getchar()) != EOF && ch != '\n') && \
             (i < LINE_DATA_LEN); i++){
       user_params.line_data[i] = ch;
+
     }
     user_params.line_number++;
     if (ch == EOF)
         return 1;
-
+    delims = count_collumns()-1;
     return 0;
 }
 
@@ -426,32 +469,6 @@ count_collumns(){
     }
     return count+1;
 }
-
-/*
-int //vrati index konce(\n) zvoleneho radku
-get_row_end(int cbsr){
-    //cbsr - collums before selected row
-
-    int index = 0;
-    int q = 0; //pocet nalezenych rozdelovacu
-    for(int i = 0; user_params.line_data[i] != '\0'; i++){
-        if(q == cbsr){
-            //vyhledani konce radku
-            for(int t = i; user_params.line_data[t] != '\n'; t++){
-                index = t;
-            }
-            return index+1;
-        }
-
-        if(user_params.line_data[i] == user_params.delim)
-        {
-            q++;
-        }
-    }
-
-    return -1;
-
-}*/
 
 int
 (*find_command())(){
