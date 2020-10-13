@@ -6,7 +6,8 @@
 #include <ctype.h>
 #include <math.h>
 
-#define NUMBER_OF_COMMANDS (31)
+#define NUMBER_OF_COMMANDS (28)
+#define NUMBER_OF_LINE_SELS (3)
 #define NUMBER_OF_ARGUMENTS (5)
 #define LINE_DATA_LEN (10240)
 #define ARG_LEN (100)
@@ -14,7 +15,7 @@
 
 void print_usage();
 int scan_input();
-int (*get_func_pt(char *command))();
+int (*get_command_pt(char *command))();
 int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
@@ -51,13 +52,9 @@ int ravg(int last_line);
 int rmin(int last_line);
 int rmax(int last_line);
 int rcount(int last_line);
-int rows(int last_line);
-int beginswith(int last_line);
-int contains(int last_line);
-
-/* TODO: Fce budou využívat sdílene struktury, ve které
- * jsou uloženy informace o vstupu, parametrech a datech souboru
- * který nám byl předán */
+int rows(int last_line, int (*command)());
+int beginswith(int last_line, int (*command());
+int contains(int last_line, int (*command());
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -86,10 +83,13 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "ravg",        /*24*/
     "rmin",        /*25*/
     "rmax",        /*26*/
-    "rcount",      /*27*/
-    "rows",        /*28*/
-    "beginswith",  /*29*/
-    "contains"     /*30*/
+    "rcount"      /*27*/
+}
+
+char line_selector_commands[NUMBER_OF_LINE_SELS][11] = {
+    "rows",        
+    "beginswith", 
+    "contains"     
 };
 
 int (*functions[NUMBER_OF_COMMANDS])() = {
@@ -119,7 +119,10 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    ravg,
    rmin,
    rmax,
-   rcount,
+   rcount
+}
+
+int (*line_sels[NUMBER_OF_LINE_SELS])() = {
    rows,
    beginswith,
    contains
@@ -135,7 +138,8 @@ struct params{
 };
 
 struct params user_params = {
-    .delim = ' '
+    .delim = ' ',
+    .second_command = NULL
 };
 
 int
@@ -527,11 +531,30 @@ rcount(int last_line){
     (void)last_line;
     return -1;
 }
-int
-rows(int last_line){
-    (void)last_line;
-    return -1;
+
+int validate_second_command(){
+    user_params.second_command = find_command();
+    if (user_params.second_command == NULL){
+        printf("Missing data command\r\n");
+        return -1
+    }
+    return 0;
 }
+
+int
+rows(int last_line, int (*command())){
+    // Doimplementovat last_line, aby s tim pocitala ---- delat chceck pred smazanim, tim padem zjistim zda je tam EOF
+    int n, m;
+    n = atoi(user_params.arguments[0]);
+    m = atoi(user_params.arguments[1]);
+    if (n<1 || m<1){
+        return -1;
+        }
+        //Když bude last line tak check if n a m nejsou vetsi a vyhodit error
+    }
+
+}
+
 int
 beginswith(int last_line){
     (void)last_line;
@@ -560,8 +583,20 @@ arow(int last_line){
     return 0;
 }
 
+int (*get_line_sel_pt(char *line_sel))(){
+    for (int i=0; i<NUMBER_OF_LINE_SELS; i++){
+    if ((strcmp(line_sel, line_selector_commands[i]) == 0)
+        return line_sel[i];
+    } // Dodělej rows a pred spustenim fci hceckuj tyhle line selectory i presto ze vrací -1 tak pokracuj
+    return NULL;
+}
+
+int (*find_line_sel())(){
+
+}
+
 int
-(*get_func_pt(char *command))(){
+(*get_command_pt(char *command))(){
     for (int i=0; i<NUMBER_OF_COMMANDS; i++){
         if (strcmp(command, commands[i]) == 0)
             return functions[i];
@@ -635,7 +670,7 @@ int
     int (*chosen_command)();
 
     for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
-        if ((chosen_command = get_func_pt(user_params.arguments[i])) != NULL){
+        if ((chosen_command = get_command_pt(user_params.arguments[i])) != NULL){
             for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
                 strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
             return chosen_command;
@@ -657,6 +692,7 @@ int
 main(int argc, char **argv){
     int opt, perim_chosen = 0, test_flag = 0, result = -1;
     int (*chosen_command)();
+    int (*line_sel)();
 
     if (argc == 1){
         print_usage();
@@ -694,6 +730,8 @@ main(int argc, char **argv){
     {
         find_arguments(argc, argv);
 
+    line_sel = find_line_sel();
+
         chosen_command = find_command();
         if (chosen_command == NULL)
             return -1;
@@ -708,14 +746,26 @@ main(int argc, char **argv){
         return result;
     }
 
-    while (scan_input() != 1){
+    if (line_sel == NULL){
+        while (scan_input() != 1){
         if ((result = chosen_command(0)) != 0)
             return -1;
         printf("%s\n", user_params.line_data);
+
+        if ((result = chosen_command(1)) != 0)
+            return -1;
+
+        }
+    } else {
+        while (scan_input() != 1){
+            if (line_sell() == 0){
+                if ((result = chosen_command(0)) != 0)
+                    return -1;
+            }
+            printf("%s\n", user_params.line_data);
+        }
     }
 
-    if ((result = chosen_command(1)) != 0)
-        return -1;
     printf("%s\n", user_params.line_data);
 
     return 0;
