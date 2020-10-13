@@ -30,8 +30,8 @@ int acol(int last_line);
 int dcol(int last_line);
 int dcols(int last_line);
 int cset(int last_line);
-int to_lower(int last_line);
-int touuper(int last_line);
+int tolower(int last_line);
+int toupper(int last_line);
 int roundup(int last_line);
 int copy(int last_line);
 int swap(int last_line);
@@ -99,8 +99,8 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    dcol,
    dcols,
    cset,
-   to_lower,
-   touuper,
+   tolower,
+   toupper,
    roundup,
    copy,
    swap,
@@ -138,10 +138,11 @@ struct params user_params = {
 int
 irow(int last_line){
     (void)last_line; //pičuje compiler a ja potřebuju testovat :)
-    int selected_row = atoi(user_params.arguments[0]);
+    int selected_row = atoi(user_params.arguments[1]);
 
     if(user_params.line_number == selected_row){
         int edit_size = user_params.delims_count;
+
         if (check_for_space(edit_size) != 0)
             return -1;
 
@@ -159,7 +160,7 @@ int
 drow(int last_line){
     (void)last_line;
 
-    int selected_row = atoi(user_params.arguments[0]);
+    int selected_row = atoi(user_params.arguments[1]);
 
     if(user_params.line_number == selected_row){
 
@@ -173,16 +174,14 @@ int
 drows(int last_line){
     (void)last_line;
 
-    int selected_row1 = atoi(user_params.arguments[0]);
-    int selected_row2 = atoi(user_params.arguments[1]);
+    int selected_row1 = atoi(user_params.arguments[1]);
+    int selected_row2 = atoi(user_params.arguments[2]);
 
     if(selected_row1>selected_row2) //N<=M
         return -1;
 
     if(user_params.line_number >= selected_row1 && user_params.line_number <= selected_row2){
-
         user_params.line_data[0] = '\0';
-
     }
 
     return 0;
@@ -192,14 +191,12 @@ drows(int last_line){
 int get_delim_index(int order){
     int appear = 0; //vyskyt delimu v radku
     for(int i = 0; i<LINE_DATA_LEN; i++){
-        if(appear == order-1){
-            return i;
-        }
         if(user_params.line_data[i] == user_params.delim){
             appear++;
         }
-        //pokud je nalezeny delim tolikaty kolikaty chceme, vratime index
-
+        if(appear >= order-1){
+            return i;
+        }
     }
     return -1;
 }
@@ -223,7 +220,7 @@ icol(int last_line){
         return -1;
 
     //ziska index n-teho delimu
-    int index = get_delim_index(atoi(user_params.arguments[0]));
+    int index = get_delim_index(atoi(user_params.arguments[1]));
 
     if(index == -1)
         return -1;
@@ -296,10 +293,10 @@ insert_text(char *text, int start_index, int end_index){
 int //odstrani sloupec N
 dcol(int last_line){
     (void)last_line;
-    int selected_col = atoi(user_params.arguments[0]);
+    int selected_col = atoi(user_params.arguments[1]);
 
     int cols = count_collumns();
-    
+
     if(selected_col>cols)
         return -1;
 
@@ -334,8 +331,8 @@ dcols(int last_line){
     if(last_line)
         return -1;
 
-    int selected_col1 = atoi(user_params.arguments[0]);
-    int selected_col2 = atoi(user_params.arguments[1]);
+    int selected_col1 = atoi(user_params.arguments[1]);
+    int selected_col2 = atoi(user_params.arguments[2]);
 
     if(selected_col1>selected_col2) //N<=M
         return -1;
@@ -356,13 +353,54 @@ cset(int last_line){
     (void)last_line;
     return -1;
 }
-int
-to_lower(int last_line){
-    (void)last_line;
-    return -1;
+
+int //vrati text mezi zadanymi indexy
+get_text(char* sub_text, int start_index, int end_index){
+
+    for(int i = 0; i<end_index-start_index; i++){
+        sub_text[i]=user_params.line_data[start_index+i];
+    }
+    return 0;
 }
+
 int
-touuper(int last_line){
+tolower(int last_line){
+    (void)last_line;
+
+    if(last_line)
+        return -1;
+
+    int selected_col = atoi(user_params.arguments[1]);
+
+    int index = get_delim_index(selected_col);
+    int end_index;
+    //printf("index %d, delka %d\n", index+1,get_len(user_params.line_data));
+
+    //osetreni 1 sloupce
+    if(index == 0 && user_params.line_data[0] == user_params.delim)
+        return 0;
+
+    if(selected_col == count_collumns()){
+        if((index+1) == get_len(user_params.line_data))
+            return 0;
+        //osetreni posledniho sloupce
+        end_index = get_len(user_params.line_data)-1;
+    }
+    else
+        end_index = get_delim_index(selected_col+1);
+
+    char sub_text[end_index-index+1];
+    memset(sub_text, 0, sizeof sub_text);
+
+    get_text(sub_text,index+1,end_index);
+    sub_text[0]='L';
+    insert_text(sub_text,index,end_index);
+
+    return 0;
+}
+
+int
+toupper(int last_line){
     (void)last_line;
     return -1;
 }
