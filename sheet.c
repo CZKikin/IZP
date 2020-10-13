@@ -49,13 +49,9 @@ int ravg(int last_line);
 int rmin(int last_line);
 int rmax(int last_line);
 int rcount(int last_line);
-int rows(int last_line);
-int beginswith(int last_line);
-int contains(int last_line);
-
-/* TODO: Fce budou využívat sdílene struktury, ve které
- * jsou uloženy informace o vstupu, parametrech a datech souboru
- * který nám byl předán */
+int rows(int last_line, int (*command)());
+int beginswith(int last_line, int (*command());
+int contains(int last_line, int (*command());
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -133,7 +129,6 @@ struct params{
     char delim;
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
     int arg_count;
-    int (*second_command()) // Used for line select operations
     char line_data[LINE_DATA_LEN];
     int line_number;
 };
@@ -387,7 +382,16 @@ int validate_second_command(){
 }
 
 int
-rows(){
+rows(int last_line, int (*command())){
+    // Doimplementovat last_line, aby s tim pocitala ---- delat chceck pred smazanim, tim padem zjistim zda je tam EOF
+    int n, m;
+    n = atoi(user_params.arguments[0]);
+    m = atoi(user_params.arguments[1]);
+    if (n<1 || m<1){
+        return -1;
+        }
+        //Když bude last line tak check if n a m nejsou vetsi a vyhodit error
+    }
 
 }
 
@@ -419,12 +423,16 @@ arow(int last_line){
     return 0;
 }
 
-int (*find_line_sel(char *line_sel))(){
+int (*get_line_sel_pt(char *line_sel))(){
     for (int i=0; i<NUMBER_OF_LINE_SELS; i++){
-	if ((strcmp(line_sel, line_selector_commands[i]) == 0)
-		return line_sel[i];
+    if ((strcmp(line_sel, line_selector_commands[i]) == 0)
+        return line_sel[i];
     } // Dodělej rows a pred spustenim fci hceckuj tyhle line selectory i presto ze vrací -1 tak pokracuj
     return NULL;
+}
+
+int (*find_line_sel())(){
+
 }
 
 int
@@ -524,6 +532,7 @@ int
 main(int argc, char **argv){
     int opt, perim_chosen = 0, test_flag = 0, result = -1;
     int (*chosen_command)();
+    int (*line_sel)();
 
     if (argc == 1){
         print_usage();
@@ -561,6 +570,8 @@ main(int argc, char **argv){
     {
         find_arguments(argc, argv);
 
+    line_sel = find_line_sel();
+
         chosen_command = find_command();
         if (chosen_command == NULL)
             return -1;
@@ -575,14 +586,26 @@ main(int argc, char **argv){
         return result;
     }
 
-    while (scan_input() != 1){
+    if (line_sel == NULL){
+        while (scan_input() != 1){
         if ((result = chosen_command(0)) != 0)
             return -1;
         printf("%s\n", user_params.line_data);
+
+        if ((result = chosen_command(1)) != 0)
+            return -1;
+
+        }
+    } else {
+        while (scan_input() != 1){
+            if (line_sell() == 0){
+                if ((result = chosen_command(0)) != 0)
+                    return -1;
+            }
+            printf("%s\n", user_params.line_data);
+        }
     }
 
-    if ((result = chosen_command(1)) != 0)
-        return -1;
     printf("%s\n", user_params.line_data);
 
     return 0;
