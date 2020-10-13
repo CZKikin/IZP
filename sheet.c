@@ -362,7 +362,7 @@ cset(int last_line){
     char str[ARG_LEN];
     int collumns;
     strncpy(str,user_params.arguments[1],ARG_LEN);
-    //printf("cell %d%s\n", selected_cell, str);
+    printf("cell %d%s\n", selected_cell, str);
     collumns = count_collumns();
     printf("collumns %d\n", collumns);
     if(selected_cell > collumns){
