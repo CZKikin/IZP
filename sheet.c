@@ -9,7 +9,6 @@
 #define LINE_DATA_LEN (10240)
 #define ARG_LEN (100)
 
-int delims;
 
 void print_usage();
 int scan_input();
@@ -18,7 +17,8 @@ int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
 int get_delim_index(int order);
-//int get_row_end(int cbsr);
+int insert_text(char *text, int start_index, int end_index);
+int get_len(char *arr);
 int (*find_command())();
 void find_arguments(int argc, char **argv);
 int irow(int last_line);
@@ -128,6 +128,7 @@ struct params{
     int arg_count;
     char line_data[LINE_DATA_LEN];
     int line_number;
+    int delims_count;
 };
 
 struct params user_params = {
@@ -140,7 +141,7 @@ irow(int last_line){
     int selected_row = atoi(user_params.arguments[0]);
 
     if(user_params.line_number == selected_row){
-        int edit_size = count_collumns()-1;
+        int edit_size = user_params.delims_count;
         if (check_for_space(edit_size) != 0)
             return -1;
 
@@ -149,12 +150,11 @@ irow(int last_line){
         }
 
         printf("\n");
-
-
     }
 
     return 0;
 }
+
 int
 drow(int last_line){
     (void)last_line;
@@ -192,13 +192,14 @@ drows(int last_line){
 int get_delim_index(int order){
     int appear = 0; //vyskyt delimu v radku
     for(int i = 0; i<LINE_DATA_LEN; i++){
+        if(appear == order-1){
+            return i;
+        }
         if(user_params.line_data[i] == user_params.delim){
             appear++;
         }
         //pokud je nalezeny delim tolikaty kolikaty chceme, vratime index
-        if(appear == order-1){
-            return i;
-        }
+
     }
     return -1;
 }
@@ -225,6 +226,9 @@ icol(int last_line){
     int index = get_delim_index(atoi(user_params.arguments[0]));
 
     if(index == -1)
+        return -1;
+
+    if(last_line)
         return -1;
 
     //vsude +1 nez je potreba pro \0
@@ -262,16 +266,46 @@ acol(int last_line){
     return 0;
 }
 
+int //vlozi zadany text mezi 2 zadane indexy
+insert_text(char *text, int start_index, int end_index){
+
+    int text_len = get_len(text);
+
+    if(check_for_space(text_len) != 0)
+        return -1;
+
+    char start[start_index+1], end[get_len(user_params.line_data)-end_index+1];
+    memset(start, 0, sizeof start); //vynulovani
+    memset(end, 0, sizeof end);
+
+    strncpy(start,user_params.line_data,start_index);
+    strcpy(end,user_params.line_data + end_index);
+
+    char full[get_len(user_params.line_data)-(end_index-start_index)+1+text_len];
+
+    memset(full, 0, sizeof full);
+    strcat(full, start);
+    strcat(full, text);
+    strcat(full, end);
+
+    strcpy(user_params.line_data,full);
+
+    return 0;
+}
+
 int //odstrani sloupec N
 dcol(int last_line){
     (void)last_line;
     int selected_col = atoi(user_params.arguments[0]);
 
-    if(selected_col>count_collumns())
+    int cols = count_collumns();
+    
+    if(selected_col>cols)
         return -1;
 
-    int cols = count_collumns();
+
     int index = get_delim_index(selected_col);
+
     if(cols == 1){
         memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
         return 0;
@@ -286,23 +320,8 @@ dcol(int last_line){
         }
 
         else{
-            int afterIndex = get_delim_index(selected_col+1);
-            //smazani textu mezi <index a afterindex)
-
-            char start[index+1], end[get_len(user_params.line_data)-index+1];
-            memset(start, 0, sizeof start); //vynulovani
-            memset(end, 0, sizeof end);
-
-            strncpy(start,user_params.line_data,index);
-            strcpy(end,user_params.line_data + afterIndex);
-
-            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
-
-            memset(full, 0, sizeof full);
-            strcat(full,start);
-            strcat(full,end);
-
-            strcpy(user_params.line_data,full);
+            int end_index = get_delim_index(selected_col+1);
+            insert_text("",index,end_index);
         }
     }
     return 0;
@@ -312,49 +331,26 @@ int //smaze sloupce mezi N a M
 dcols(int last_line){
     (void)last_line;
 
-    if(!last_line){
+    if(last_line)
+        return -1;
 
-        int selected_col1 = atoi(user_params.arguments[0]);
-        int selected_col2 = atoi(user_params.arguments[1]);
+    int selected_col1 = atoi(user_params.arguments[0]);
+    int selected_col2 = atoi(user_params.arguments[1]);
 
-        if(selected_col1>selected_col2) //N<=M
-            return -1;
+    if(selected_col1>selected_col2) //N<=M
+        return -1;
 
-        if(selected_col2>count_collumns())
-            return -1;
+    if(selected_col2>count_collumns())
+        return -1;
 
-        int index = get_delim_index(selected_col1);
-        int afterIndex = get_delim_index(selected_col2+1);
-        printf("i%da%d",index,afterIndex);
-        //smazani textu mezi <index a afterindex)
+    int index = get_delim_index(selected_col1);
+    int end_index = get_delim_index(selected_col2+1);
 
-        if(index!=0){
-            char start[index+1], end[get_len(user_params.line_data)-index+1];
+    insert_text("",index,end_index);
 
-            memset(start, 0, sizeof start); //vynulovani
-            memset(end, 0, sizeof end);
-
-
-            strncpy(start,user_params.line_data,index);
-
-            strcpy(end,user_params.line_data + afterIndex);
-
-            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
-
-            memset(full, 0, sizeof full);
-
-            strcat(full,start);
-            strcat(full,end);
-
-            strcpy(user_params.line_data,full);
-        }
-        else{
-
-        }
-        return 0;
-    }
-    return -1;
+    return 0;
 }
+
 int
 cset(int last_line){
     (void)last_line;
@@ -472,10 +468,10 @@ arow(int last_line){
         return 0;
     } else {
 
-        if (check_for_space(delims) != 0)
+        if (check_for_space(user_params.delims_count) != 0)
             return -1;
 
-        for(int i = 0; i<delims; i++){
+        for(int i = 0; i<user_params.delims_count; i++){
             printf("%c", user_params.delim);
         }
 
@@ -529,7 +525,7 @@ scan_input(){
     user_params.line_number++;
     if (ch == EOF)
         return 1;
-    delims = count_collumns()-1;
+    user_params.delims_count = count_collumns()-1;
     return 0;
 }
 
