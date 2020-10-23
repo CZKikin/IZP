@@ -52,9 +52,9 @@ int ravg(int last_line);
 int rmin(int last_line);
 int rmax(int last_line);
 int rcount(int last_line);
-int rows(int last_line, int (*command)());
-int beginswith(int last_line, int (*command());
-int contains(int last_line, int (*command());
+int rows(int last_line);
+int beginswith(int last_line);
+int contains(int last_line);
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -66,8 +66,8 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "dcol",        /*7*/
     "dcols",       /*8*/
     "cset",        /*9*/
-    "to_lower",     /*10*/
-    "to_upper",     /*11*/
+    "tolower",     /*10*/
+    "toupper",     /*11*/
     "roundup",       /*12*/
     "copy",        /*13*/
     "swap",        /*14*/
@@ -84,7 +84,7 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "rmin",        /*25*/
     "rmax",        /*26*/
     "rcount"      /*27*/
-}
+};
 
 char line_selector_commands[NUMBER_OF_LINE_SELS][11] = {
     "rows",        
@@ -120,7 +120,7 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    rmin,
    rmax,
    rcount
-}
+};
 
 int (*line_sels[NUMBER_OF_LINE_SELS])() = {
    rows,
@@ -135,16 +135,19 @@ struct params{
     char line_data[LINE_DATA_LEN];
     int line_number;
     int delims_count;
+    int (*second_command)();
 };
 
 struct params user_params = {
     .delim = ' ',
-    .second_command = NULL
+    .second_command = NULL,
 };
+
+char checker = '\0';
 
 int
 irow(int last_line){
-    (void)last_line; //pičuje compiler a ja potřebuju testovat :)
+    (void)last_line;
     int selected_row = atoi(user_params.arguments[0]);
 
     if(user_params.line_number == selected_row){
@@ -534,25 +537,47 @@ rcount(int last_line){
 
 int validate_second_command(){
     user_params.second_command = find_command();
-    if (user_params.second_command == NULL){
-        printf("Missing data command\r\n");
-        return -1
-    }
+
+    if (user_params.second_command == NULL)
+        return -1;
+
     return 0;
+}
+int
+check_arg(char *argument){
+    if (argument[0] == '-')
+        return -1;
+    return atoi(argument);
 }
 
 int
-rows(int last_line, int (*command())){
-    // Doimplementovat last_line, aby s tim pocitala ---- delat chceck pred smazanim, tim padem zjistim zda je tam EOF
+rows(int last_line){
     int n, m;
-    n = atoi(user_params.arguments[0]);
-    m = atoi(user_params.arguments[1]);
-    if (n<1 || m<1){
+    n = check_arg(user_params.arguments[0]);
+    m = check_arg(user_params.arguments[1]);
+    if (m == -1)
+        m = user_params.line_number + 1;
+
+    if (n==0 || m==0 || m<n){
+        printf("Invalid lines!\r\n");
         return -1;
-        }
-        //Když bude last line tak check if n a m nejsou vetsi a vyhodit error
     }
 
+    if (n == -1){
+        if (last_line)
+            return 0;
+        return 1;
+    }
+
+    if (n<=user_params.line_number && user_params.line_number<m)
+        return 0;
+
+    if (last_line && m>user_params.line_number){
+        printf("Last line reached, but you entered more lines!\n\r");
+        return -1;
+    }
+
+    return -1;
 }
 
 int
@@ -575,6 +600,7 @@ arow(int last_line){
         if (check_for_space(user_params.delims_count) != 0)
             return -1;
 
+        printf("%s", user_params.line_data);
         for(int i = 0; i<user_params.delims_count; i++){
             printf("%c", user_params.delim);
         }
@@ -585,13 +611,24 @@ arow(int last_line){
 
 int (*get_line_sel_pt(char *line_sel))(){
     for (int i=0; i<NUMBER_OF_LINE_SELS; i++){
-    if ((strcmp(line_sel, line_selector_commands[i]) == 0)
-        return line_sel[i];
-    } // Dodělej rows a pred spustenim fci hceckuj tyhle line selectory i presto ze vrací -1 tak pokracuj
+    if ((strcmp(line_sel, line_selector_commands[i])) == 0)
+        return line_sels[i];
+    }
     return NULL;
 }
 
 int (*find_line_sel())(){
+    int (*chosen_command)();
+
+        for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
+            if ((chosen_command = get_line_sel_pt(user_params.arguments[i])) != NULL){
+                for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
+                    strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
+                return chosen_command;
+
+            }
+        }
+        return NULL;
 
 }
 
@@ -631,16 +668,23 @@ print_usage(){
 int /* To prevent buffer overflow */
 scan_input(){
     char ch;
+    int is_checker = 0;
 
     memset(user_params.line_data, 0, sizeof(user_params.line_data));
-    for(int i=0; ((ch = getchar()) != EOF && ch != '\n') && \
+    if (checker != '\0'){
+        user_params.line_data[0] = checker;
+        is_checker = 1;
+     }
+
+    for(int i=is_checker; ((ch = getchar()) != EOF && ch != '\n') && \
             (i < LINE_DATA_LEN); i++){
       user_params.line_data[i] = ch;
-
     }
     user_params.line_number++;
-    if (ch == EOF)
+
+    if ((checker = getchar()) == EOF)
         return 1;
+
     user_params.delims_count = count_collumns()-1;
     return 0;
 }
@@ -730,7 +774,7 @@ main(int argc, char **argv){
     {
         find_arguments(argc, argv);
 
-    line_sel = find_line_sel();
+        line_sel = find_line_sel();
 
         chosen_command = find_command();
         if (chosen_command == NULL)
@@ -748,25 +792,26 @@ main(int argc, char **argv){
 
     if (line_sel == NULL){
         while (scan_input() != 1){
-        if ((result = chosen_command(0)) != 0)
-            return -1;
-        printf("%s\n", user_params.line_data);
+            if ((result = chosen_command(0)) != 0)
+                return -1;
+            printf("%s\n", user_params.line_data);
+        }
 
         if ((result = chosen_command(1)) != 0)
             return -1;
 
-        }
     } else {
         while (scan_input() != 1){
-            if (line_sell() == 0){
+            if (line_sel() == 0){
                 if ((result = chosen_command(0)) != 0)
                     return -1;
             }
             printf("%s\n", user_params.line_data);
         }
+        if ((result = chosen_command(1)) != 0)
+            return -1;
     }
 
     printf("%s\n", user_params.line_data);
-
     return 0;
 }
