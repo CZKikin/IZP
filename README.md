@@ -5,18 +5,18 @@ je to pro naše dobro.
 Dále bych byl rád, aby si KAŽDÝ z nás udělal vlastní branch a poté co udělá
 funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z důvodu
 čitelnosti a následné další práce s kódem.
-- [ ] irow 
+- [x] irow 
 - [x] arow 
-- [ ] drow 
-- [ ] drows 
-- [ ] icol 
-- [ ] acol 
-- [ ] dcol 
-- [ ] dcols 
-- [ ] cset 
-- [ ] tolower 
-- [ ] toupper 
-- [ ] round 
+- [x] drow 
+- [x] drows 
+- [x] icol 
+- [x] acol 
+- [x] dcol 
+- [x] dcols 
+- [x] cset 
+- [x] tolower 
+- [x] toupper 
+- [x] round 
 - [ ] int 
 - [ ] copy 
 - [ ] swap 
@@ -33,6 +33,6 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [ ] rmin 
 - [ ] rmax 
 - [ ] rcount 
-- [ ] rows 
+- [x] rows  - částečně funkční
 - [ ] beginswith 
 - [ ] contains 
