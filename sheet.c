@@ -131,6 +131,7 @@ int (*line_sels[NUMBER_OF_LINE_SELS])() = {
 struct params{
     char delim;
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
+    char line_selectors[2][ARG_LEN];
     int arg_count;
     char line_data[LINE_DATA_LEN];
     int line_number;
@@ -384,8 +385,6 @@ correct_index(int index, int *p_end_index, int selected_col, int *p_correction){
 int
 to_lower(int last_line){
     (void)last_line;
-    if(last_line)
-        return -1;
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -410,8 +409,7 @@ to_lower(int last_line){
 int
 to_upper(int last_line){
     (void)last_line;
-    if(last_line)
-        return -1;
+    
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -553,8 +551,8 @@ check_arg(char *argument){
 int
 rows(int last_line){
     int n, m;
-    n = check_arg(user_params.arguments[0]);
-    m = check_arg(user_params.arguments[1]);
+    n = check_arg(user_params.line_selectors[0]);
+    m = check_arg(user_params.line_selectors[1]);
     if (m == -1)
         m = user_params.line_number + 1;
 
@@ -731,6 +729,14 @@ find_arguments(int argc, char **argv){
     }
 }
 
+void
+separate_line_sel_from_args(){
+    for(int i=0; i<2; i++)
+        strncpy(user_params.line_selectors[i], user_params.arguments[i], ARG_LEN);
+
+    for(int i=0,j=2; j<NUMBER_OF_ARGUMENTS; i++, j++)
+        strncpy(user_params.arguments[i], user_params.arguments[j], ARG_LEN);
+}
 
 int
 main(int argc, char **argv){
@@ -801,8 +807,9 @@ main(int argc, char **argv){
             return -1;
 
     } else {
+        separate_line_sel_from_args();
         while (scan_input() != 1){
-            if (line_sel() == 0){
+            if (line_sel(0) == 0){
                 if ((result = chosen_command(0)) != 0)
                     return -1;
             }
