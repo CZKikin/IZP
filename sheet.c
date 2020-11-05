@@ -55,6 +55,7 @@ int rcount(int last_line);
 int rows(int last_line);
 int beginswith(int last_line);
 int contains(int last_line);
+int find_word_column(int pos_of_str);
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -542,7 +543,7 @@ int validate_second_command(){
     return 0;
 }
 int
-check_arg(char *argument){
+check_for_dash(char *argument){
     if (argument[0] == '-')
         return -1;
     return atoi(argument);
@@ -551,13 +552,12 @@ check_arg(char *argument){
 int
 rows(int last_line){
     int n, m;
-    n = check_arg(user_params.line_selectors[0]);
-    m = check_arg(user_params.line_selectors[1]);
+    n = check_for_dash(user_params.line_selectors[0]);
+    m = check_for_dash(user_params.line_selectors[1]);
     if (m == -1)
         m = user_params.line_number + 1;
 
-    if (n==0 || m==0 || m<n){
-        printf("Invalid lines!\r\n");
+    if (n==0 || m==0 || m<n){ printf("Invalid lines!\r\n");
         return -1;
     }
 
@@ -581,8 +581,41 @@ rows(int last_line){
 int
 beginswith(int last_line){
     (void)last_line;
-    return -1;
+    char *tmp_pt;
+    int pos_of_str;
+    int selected_col = atoi(user_params.line_selectors[0]);
+    int cols = count_collumns();
+
+    if(selected_col>cols)
+        return -1;
+
+    tmp_pt = strstr(user_params.line_data, user_params.line_selectors[1]);
+    if (tmp_pt == NULL)
+        return -1;
+
+    pos_of_str = tmp_pt - user_params.line_data;
+    if(pos_of_str != 0 && user_params.line_data[pos_of_str - 1] != ':')
+        return -1;
+
+    cols = find_word_column(pos_of_str);
+    if(cols != selected_col)
+        return -1;
+
+    printf("%d <- poska\n\r", pos_of_str);
+
+    return 0;
 }
+
+int
+find_word_column(int pos_of_str){
+    int cols = 1; //because lol:lol are 2 cols..
+    for(int i=0; i<pos_of_str; i++){
+        if(user_params.line_data[i] == user_params.delim)
+            cols++;
+    }    
+    return cols;
+}
+
 int
 contains(int last_line){
     (void)last_line;
