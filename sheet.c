@@ -55,6 +55,7 @@ int rcount(int last_line);
 int rows(int last_line);
 int beginswith(int last_line);
 int contains(int last_line);
+int find_word_column(int pos_of_str);
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -131,6 +132,7 @@ int (*line_sels[NUMBER_OF_LINE_SELS])() = {
 struct params{
     char delim;
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
+    char line_selectors[2][ARG_LEN];
     int arg_count;
     char line_data[LINE_DATA_LEN];
     int line_number;
@@ -190,7 +192,8 @@ drows(int last_line){
     if(selected_row1>selected_row2) //N<=M
         return -1;
 
-    if(user_params.line_number >= selected_row1 && user_params.line_number <= selected_row2){
+    if(user_params.line_number >= selected_row1 && 
+        user_params.line_number <= selected_row2){
         user_params.line_data[0] = '\0';
     }
 
@@ -384,8 +387,6 @@ correct_index(int index, int *p_end_index, int selected_col, int *p_correction){
 int
 to_lower(int last_line){
     (void)last_line;
-    if(last_line)
-        return -1;
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -410,8 +411,6 @@ to_lower(int last_line){
 int
 to_upper(int last_line){
     (void)last_line;
-    if(last_line)
-        return -1;
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -452,7 +451,7 @@ roundup(int last_line){
     float f1 = strtof(sub_text, &pend);
 
     //TODO: osetrit pokud ve sloupci neni cislo
-    
+
     sprintf(sub_text, "%d", (int)round(f1));
 
     insert_text(sub_text,index+correction,end_index);
@@ -544,7 +543,7 @@ int validate_second_command(){
     return 0;
 }
 int
-check_arg(char *argument){
+check_for_dash(char *argument){
     if (argument[0] == '-')
         return -1;
     return atoi(argument);
@@ -553,13 +552,12 @@ check_arg(char *argument){
 int
 rows(int last_line){
     int n, m;
-    n = check_arg(user_params.arguments[0]);
-    m = check_arg(user_params.arguments[1]);
+    n = check_for_dash(user_params.line_selectors[0]);
+    m = check_for_dash(user_params.line_selectors[1]);
     if (m == -1)
         m = user_params.line_number + 1;
 
-    if (n==0 || m==0 || m<n){
-        printf("Invalid lines!\r\n");
+    if (n==0 || m==0 || m<n){ printf("Invalid lines!\r\n");
         return -1;
     }
 
@@ -583,12 +581,84 @@ rows(int last_line){
 int
 beginswith(int last_line){
     (void)last_line;
-    return -1;
+    char *tmp_pt;
+    int pos_of_str;
+
+    int selected_col = atoi(user_params.line_selectors[0]);
+    int cols = count_collumns();
+
+    if(selected_col>cols)
+        return -1;
+
+    tmp_pt = strstr(user_params.line_data, user_params.line_selectors[1]);
+    if (tmp_pt == NULL)
+        return -1;
+
+    pos_of_str = tmp_pt - user_params.line_data;
+
+    cols = find_word_column(pos_of_str);
+    if(cols != selected_col)
+        return -1;
+
+    /* Check if there is delimiter before string except the first one */
+    if(pos_of_str != 0 && user_params.line_data[pos_of_str - 1] != user_params.delim)
+        return -1;
+
+    return 0;
 }
+
+int
+find_word_column(int pos_of_str){
+    int cols = 1; /* because lol:lol are 2 cols.. */
+    for(int i=0; i<pos_of_str; i++){
+        if(user_params.line_data[i] == user_params.delim)
+            cols++;
+    }    
+    return cols;
+}
+
 int
 contains(int last_line){
     (void)last_line;
-    return -1;
+
+    char *tmp_pt;
+    int pos_of_str;
+
+    int selected_col = atoi(user_params.line_selectors[0]);
+    int cols = count_collumns();
+    int last_column = cols;
+
+    if(selected_col>cols)
+        return -1;
+
+    tmp_pt = strstr(user_params.line_data, user_params.line_selectors[1]);
+    if (tmp_pt == NULL)
+        return -1;
+
+    pos_of_str = tmp_pt - user_params.line_data;
+    cols = find_word_column(pos_of_str);
+
+    if(cols != selected_col)
+        return -1;
+
+    /* Check if there is delimiter, with exception of first and last string */
+    if((pos_of_str != 0 &&
+      user_params.line_data[pos_of_str - 1] != user_params.delim) ||
+      ((user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])]) != user_params.delim && 
+      cols != last_column))
+        return -1;
+    
+    if(pos_of_str == 0 && 
+        user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])] != user_params.delim)  
+        return -1;
+
+    /* I can check for \0 without seg fault because if the STR given as parameter *
+     * would be larger then the word it self, strstr wouldn't find it             */
+    if(cols == last_column &&
+        user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])] != '\0' )
+        return -1;
+
+    return 0;
 }
 
 int //vlozi novy radek na konec souboru
@@ -731,6 +801,14 @@ find_arguments(int argc, char **argv){
     }
 }
 
+void
+separate_line_sel_from_args(){
+    for(int i=0; i<2; i++)
+        strncpy(user_params.line_selectors[i], user_params.arguments[i], ARG_LEN);
+
+    for(int i=0,j=2; j<NUMBER_OF_ARGUMENTS; i++, j++)
+        strncpy(user_params.arguments[i], user_params.arguments[j], ARG_LEN);
+}
 
 int
 main(int argc, char **argv){
@@ -801,15 +879,18 @@ main(int argc, char **argv){
             return -1;
 
     } else {
+        separate_line_sel_from_args();
         while (scan_input() != 1){
-            if (line_sel() == 0){
+            if (line_sel(0) == 0){
                 if ((result = chosen_command(0)) != 0)
                     return -1;
             }
             printf("%s\n", user_params.line_data);
         }
-        if ((result = chosen_command(1)) != 0)
-            return -1;
+        if (line_sel(1) == 0){
+            if ((result = chosen_command(1)) != 0)
+                return -1;
+        }
     }
 
     printf("%s\n", user_params.line_data);
