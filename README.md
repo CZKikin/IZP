@@ -23,8 +23,8 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [ ] move 
 - [ ] csum 
 - [ ] cavg 
-- [ ] cmin 
-- [ ] cmax 
+- [ ] cmin - WIP 
+- [ ] cmax - WIP
 - [ ] ccount 
 - [ ] cseq 
 - [ ] rseq 
@@ -33,6 +33,6 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [ ] rmin 
 - [ ] rmax 
 - [ ] rcount 
-- [x] rows  - částečně funkční
-- [ ] beginswith 
-- [ ] contains 
+- [x] rows
+- [x] beginswith 
+- [x] contains 
