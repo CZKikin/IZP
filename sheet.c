@@ -192,7 +192,8 @@ drows(int last_line){
     if(selected_row1>selected_row2) //N<=M
         return -1;
 
-    if(user_params.line_number >= selected_row1 && user_params.line_number <= selected_row2){
+    if(user_params.line_number >= selected_row1 && 
+        user_params.line_number <= selected_row2){
         user_params.line_data[0] = '\0';
     }
 
@@ -410,7 +411,6 @@ to_lower(int last_line){
 int
 to_upper(int last_line){
     (void)last_line;
-    
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -451,7 +451,7 @@ roundup(int last_line){
     float f1 = strtof(sub_text, &pend);
 
     //TODO: osetrit pokud ve sloupci neni cislo
-    
+
     sprintf(sub_text, "%d", (int)round(f1));
 
     insert_text(sub_text,index+correction,end_index);
