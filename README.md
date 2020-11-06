@@ -17,22 +17,10 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] tolower 
 - [x] toupper 
 - [x] round 
-- [ ] int 
-- [ ] copy 
-- [ ] swap 
-- [ ] move 
-- [ ] csum 
-- [ ] cavg 
 - [ ] cmin - WIP 
-- [ ] cmax - WIP
-- [ ] ccount 
-- [ ] cseq 
-- [ ] rseq 
-- [ ] rsum 
-- [ ] ravg 
-- [ ] rmin 
-- [ ] rmax 
-- [ ] rcount 
+- [ ] cmax - WIP 
+- [x] cseq 
+- [x] rseq 
 - [x] rows
 - [x] beginswith 
 - [x] contains 
