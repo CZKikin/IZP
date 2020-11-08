@@ -507,7 +507,7 @@ dcols(int last_line){
     return 0;
 }
 
-int // nastavi do bunky(sloupce) (1. arg) string (2. arg) --------------------working
+int // nastavi do bunky(sloupce) (1. arg) string (2. arg)
 
 cset(int last_line){
     (void)last_line;
@@ -515,32 +515,23 @@ cset(int last_line){
     char str[ARG_LEN];
     int collumns;
 
-    if(last_line)
-        return -1;
-    strncpy(str,user_params.arguments[1],ARG_LEN);
-    // printf("cell %d string  %s\n", selected_cell, str);
     collumns = count_collumns();
-    int str_len = get_len(str) -1;
-    // printf("collumns %d\n", collumns);
     if((selected_cell > collumns)||(selected_cell < 1)){
 	return -1; //kontrola vstupu
     }
-
-    
-
-
-
-    // printf("str_leng  %d\n", str_len);
+    strncpy(str,user_params.arguments[1],ARG_LEN);
+    // printf("cell %d string  %s\n", selected_cell, str);
+    // printf("collumns %d\n", collumns);
     int start_index = get_delim_index(selected_cell) + 1; //od ktereho indexu zacina bunka kam chcu zapsat
     if(selected_cell == 1)
 	    start_index --;
-    // printf("start index %d\n", start_index);
-    int end_index = start_index + str_len;
-    
-    // printf("end index %d\n", end_index);
-    end_index=0;
+    //printf("start index %d\n", start_index);
+    int end_index = get_delim_index(selected_cell+1);
+    //printf("end index %d\n", end_index);
     insert_text(str, start_index, end_index);
     return 0;
+    if(last_line)
+        return -1;
 }
 int //vrati text mezi zadanymi indexy
 get_text(char* sub_text, int start_index, int end_index){
