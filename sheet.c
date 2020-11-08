@@ -522,7 +522,7 @@ cset(int last_line){
     collumns = count_collumns();
     int str_len = get_len(str) -1;
     // printf("collumns %d\n", collumns);
-    if(selected_cell > collumns){
+    if((selected_cell > collumns)||(selected_cell < 1)){
 	return -1; //kontrola vstupu
     }
 
@@ -532,10 +532,13 @@ cset(int last_line){
 
     // printf("str_leng  %d\n", str_len);
     int start_index = get_delim_index(selected_cell) + 1; //od ktereho indexu zacina bunka kam chcu zapsat
+    if(selected_cell == 1)
+	    start_index --;
     // printf("start index %d\n", start_index);
     int end_index = start_index + str_len;
     
     // printf("end index %d\n", end_index);
+    end_index=0;
     insert_text(str, start_index, end_index);
     return 0;
 }
