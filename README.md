@@ -16,7 +16,10 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] cset 
 - [x] tolower 
 - [x] toupper 
-- [x] round 
+- [x] round
+- [ ] copy 
+- [ ] swap
+- [ ] move
 - [ ] cmin - WIP 
 - [ ] cmax - WIP 
 - [x] cseq 
