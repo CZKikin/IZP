@@ -520,8 +520,8 @@ cset(int last_line){
 	return -1; //kontrola vstupu
     }
     strncpy(str,user_params.arguments[1],ARG_LEN);
-    // printf("cell %d string  %s\n", selected_cell, str);
-    // printf("collumns %d\n", collumns);
+    //printf("cell %d string  %s\n", selected_cell, str);
+    //printf("collumns %d\n", collumns);
     int start_index = get_delim_index(selected_cell) + 1; //od ktereho indexu zacina bunka kam chcu zapsat
     if(selected_cell == 1)
 	    start_index --;
@@ -530,8 +530,7 @@ cset(int last_line){
     //printf("end index %d\n", end_index);
     insert_text(str, start_index, end_index);
     return 0;
-    if(last_line)
-        return -1;
+
 }
 int //vrati text mezi zadanymi indexy
 get_text(char* sub_text, int start_index, int end_index){
@@ -638,9 +637,40 @@ roundup(int last_line){
     return 0;
 }
 int
-copy(int last_line){
+copy(int last_line){ //TODO: osetreni kdyz M || N == collumns
     (void)last_line;
-    return -1;
+    int n_col = atoi(user_params.arguments[0]);
+    int m_col = atoi(user_params.arguments[1]);
+    int collumns = count_collumns();
+    //printf("n_col %d, m_col %d, collumns %d\n", n_col, m_col, collumns);
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+	return -1;
+    //printf("delimindex %d\n", get_delim_index(n_col));
+    int n_start_index = get_delim_index(n_col) + 1;
+    if(n_col ==1)
+	    n_start_index = 0;
+
+    int n_end_index = get_delim_index(n_col+1) + 1;
+    int m_start_index = get_delim_index(m_col) + 1;
+    if(m_col ==1)
+	    m_start_index = 0;
+
+    int m_end_index = get_delim_index(m_col+1) + 1;
+    //printf("Nstart:%d, Nend:%d, Mstart:%d, Mend:%d\n", n_start_index, n_end_index, m_start_index, m_end_index);
+    
+    char n_text[n_end_index-n_start_index+1];
+    memset(n_text, 0, sizeof n_text);
+    get_text(n_text,n_start_index,n_end_index-1);
+
+
+   
+    char m_text[m_end_index-m_start_index + 1];
+    memset(m_text, 0, sizeof m_text);
+    get_text(m_text,m_start_index,m_end_index-1);
+    //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+
+    insert_text(n_text, m_start_index, m_end_index-1);
+    return 0;
 }
 int
 swap(int last_line){
