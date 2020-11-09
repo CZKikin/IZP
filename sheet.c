@@ -507,8 +507,7 @@ dcols(int last_line){
     return 0;
 }
 
-int // nastavi do bunky(sloupce) (1. arg) string (2. arg)
-
+int //nastavi do bunky(sloupce) (1. arg) string (2. arg)
 cset(int last_line){
     (void)last_line;
     int selected_cell = atoi(user_params.arguments[0]);
@@ -642,7 +641,6 @@ copy(int last_line){
     int n_col = atoi(user_params.arguments[0]);
     int m_col = atoi(user_params.arguments[1]);
     int collumns = count_collumns();
-    //printf("n_col %d, m_col %d, collumns %d\n", n_col, m_col, collumns);
     if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
 	return -1;
     //printf("delimindex %d\n", get_delim_index(n_col));
@@ -654,8 +652,7 @@ copy(int last_line){
 	    if(user_params.line_data[i] == 0){
 		 end_of_line_index=i;
 	  	 break;
-		 }
-		
+		 }	
         }
 
     	int n_end_index = end_of_line_index;
@@ -686,8 +683,7 @@ copy(int last_line){
     	    if(user_params.line_data[i] == 0){
 	   	 end_of_line_index=i;
 	   	 break;
-	   	 }
-		
+	   	 }	
 	}
 
     	int m_end_index = end_of_line_index;
@@ -721,8 +717,6 @@ copy(int last_line){
 	    m_start_index = 0;
 
     	int m_end_index = get_delim_index(m_col+1) + 1;
-    	//printf("Nstart:%d, Nend:%d, Mstart:%d, Mend:%d\n", n_start_index, n_end_index, m_start_index, m_end_index);
-    
     	char n_text[n_end_index-n_start_index+1];
     	memset(n_text, 0, sizeof n_text);
     	get_text(n_text,n_start_index,n_end_index-1);
