@@ -6,24 +6,25 @@ Dále bych byl rád, aby si KAŽDÝ z nás udělal vlastní branch a poté co ud
 funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z důvodu
 čitelnosti a následné další práce s kódem.
 - [x] irow 
-- [x] arow 
-- [x] drow 
-- [x] drows 
-- [x] icol 
-- [x] acol 
-- [x] dcol 
-- [x] dcols 
+- [x] arow  Checknout
+- [x] drow  Checknout
+- [x] drows Checknout
+- [x] icol  Checknout
+- [x] acol  Checknout
+- [x] dcol  Checknout
+- [x] dcols Checknout
 - [x] cset 
-- [x] tolower 
-- [x] toupper 
-- [x] round
-- [ ] copy 
+- [x] tolower Checknout
+- [x] toupper Checknout
+- [x] round   Checknout
+- [ ] int pridat do seznamu
+- [x] copy 
 - [ ] swap
 - [ ] move
 - [ ] cmin - WIP 
 - [ ] cmax - WIP 
-- [x] cseq 
-- [x] rseq 
+- [x] cseq - nedelat 
+- [x] rseq - nedelat
 - [x] rows
 - [x] beginswith 
 - [x] contains 
