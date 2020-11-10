@@ -3,24 +3,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include <math.h>
 
-#define NUMBER_OF_COMMANDS (31)
+#define NUMBER_OF_COMMANDS (28)
+#define NUMBER_OF_LINE_SELS (3)
 #define NUMBER_OF_ARGUMENTS (5)
 #define LINE_DATA_LEN (10240)
 #define ARG_LEN (100)
 
-int delims;
+/* We are not allowed to use header files :) / more files... no point of *
+ * making static functions.                                              */
 
+int validate_second_command();
+int check_for_dash(char *argument);
+int find_word_column(int pos_of_str);
+int (*get_line_sel_pt(char *line_sel))();
+int (*find_line_sel())();
+int (*get_command_pt(char *command))();
+int run_tests(int(*chosen_command)());
 void print_usage();
 int scan_input();
-int (*get_func_pt(char *command))();
-int run_tests();
 int check_for_space(size_t size_needed);
 int count_collumns();
-int get_delim_index(int order);
-//int get_row_end(int cbsr);
 int (*find_command())();
 void find_arguments(int argc, char **argv);
+void separate_line_sel_from_args();
+int insert_text(char *text, int start_index, int end_index);
+int get_len(char *arr);
+
 int irow(int last_line);
 int arow(int last_line);
 int drow(int last_line);
@@ -31,7 +42,7 @@ int dcol(int last_line);
 int dcols(int last_line);
 int cset(int last_line);
 int to_lower(int last_line);
-int touuper(int last_line);
+int to_upper(int last_line);
 int roundup(int last_line);
 int copy(int last_line);
 int swap(int last_line);
@@ -52,10 +63,6 @@ int rows(int last_line);
 int beginswith(int last_line);
 int contains(int last_line);
 
-/* TODO: Fce budou využívat sdílene struktury, ve které
- * jsou uloženy informace o vstupu, parametrech a datech souboru
- * který nám byl předán */
-
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
     "arow",        /*1*/
@@ -68,7 +75,7 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "cset",        /*9*/
     "tolower",     /*10*/
     "toupper",     /*11*/
-    "round",       /*12*/
+    "roundup",       /*12*/
     "copy",        /*13*/
     "swap",        /*14*/
     "move",        /*15*/
@@ -83,10 +90,13 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "ravg",        /*24*/
     "rmin",        /*25*/
     "rmax",        /*26*/
-    "rcount",      /*27*/
-    "rows",        /*28*/
-    "beginswith",  /*29*/
-    "contains"     /*30*/
+    "rcount"      /*27*/
+};
+
+char line_selector_commands[NUMBER_OF_LINE_SELS][11] = {
+    "rows",        
+    "beginswith", 
+    "contains"     
 };
 
 int (*functions[NUMBER_OF_COMMANDS])() = {
@@ -100,7 +110,7 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    dcols,
    cset,
    to_lower,
-   touuper,
+   to_upper,
    roundup,
    copy,
    swap,
@@ -116,7 +126,10 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    ravg,
    rmin,
    rmax,
-   rcount,
+   rcount
+};
+
+int (*line_sels[NUMBER_OF_LINE_SELS])() = {
    rows,
    beginswith,
    contains
@@ -125,22 +138,208 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
 struct params{
     char delim;
     char arguments[NUMBER_OF_ARGUMENTS][ARG_LEN];
+    char line_selectors[2][ARG_LEN];
     int arg_count;
     char line_data[LINE_DATA_LEN];
     int line_number;
+    int delims_count;
+    int (*second_command)();
 };
 
 struct params user_params = {
-    .delim = ' '
+    .delim = ' ',
+    .second_command = NULL,
 };
 
+char checker = '\0';
+
+int //vrati delku pole
+get_len(char *arr){
+    int q = 0; //pocet znaku
+    for(int i = 0; arr[i] != '\0'; i++){
+            q++;
+    }
+    return q;
+}
+int //vlozi zadany text mezi 2 zadane indexy
+insert_text(char *text, int start_index, int end_index){
+
+    int text_len = get_len(text);
+
+    if(check_for_space(text_len) != 0)
+        return -1;
+
+    char start[start_index+1], end[get_len(user_params.line_data)-end_index+1];
+    memset(start, 0, sizeof start); //vynulovani
+    memset(end, 0, sizeof end);
+
+    strncpy(start,user_params.line_data,start_index);
+    strcpy(end,user_params.line_data + end_index);
+
+    char full[get_len(user_params.line_data)-(end_index-start_index)+1+text_len];
+
+    memset(full, 0, sizeof full);
+    strcat(full, start);
+    strcat(full, text);
+    strcat(full, end);
+
+    strcpy(user_params.line_data,full);
+
+    return 0;
+}
+int
+validate_second_command(){
+    user_params.second_command = find_command();
+
+    if (user_params.second_command == NULL)
+        return -1;
+
+    return 0;
+}
+int
+check_for_dash(char *argument){
+    if (argument[0] == '-')
+        return -1;
+    return atoi(argument);
+}
+int
+find_word_column(int pos_of_str){
+    int cols = 1; /* because lol:lol are 2 cols.. */
+    for(int i=0; i<pos_of_str; i++){
+        if(user_params.line_data[i] == user_params.delim)
+            cols++;
+    }    
+    return cols;
+}
+int
+(*get_line_sel_pt(char *line_sel))(){
+    for (int i=0; i<NUMBER_OF_LINE_SELS; i++){
+    if ((strcmp(line_sel, line_selector_commands[i])) == 0)
+        return line_sels[i];
+    }
+    return NULL;
+}
+int
+(*find_line_sel())(){
+    int (*chosen_command)();
+
+        for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
+            if ((chosen_command = get_line_sel_pt(user_params.arguments[i])) != NULL){
+                for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
+                    strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
+                return chosen_command;
+
+            }
+        }
+        return NULL;
+
+}
+int
+(*get_command_pt(char *command))(){
+    for (int i=0; i<NUMBER_OF_COMMANDS; i++){
+        if (strcmp(command, commands[i]) == 0)
+            return functions[i];
+    }
+    return NULL;
+}
+int
+run_tests(int(*chosen_command)()){
+    int result;
+
+    printf("----TESTING----\r\n");
+    result = scan_input();
+
+    assert(result == 0);
+    assert(user_params.line_data[LINE_DATA_LEN] == '\0');
+
+    result = chosen_command();
+    assert(result == 0);
+
+    printf("----TESTS SUCCESSFUL----\r\n");
+    return 0;
+}
+void
+print_usage(){
+    printf("Usage: ./sheet -d <delim> <table command> | "\
+           "-d <delim> <line select> <data command>\n\rFor testing: -t\r\n");
+}
+int /* To prevent buffer overflow */
+scan_input(){
+    char ch;
+    int is_checker = 0;
+
+    memset(user_params.line_data, 0, sizeof(user_params.line_data));
+    if (checker != '\0'){
+        user_params.line_data[0] = checker;
+        is_checker = 1;
+     }
+
+    for(int i=is_checker; ((ch = getchar()) != EOF && ch != '\n') && \
+            (i < LINE_DATA_LEN); i++){
+      user_params.line_data[i] = ch;
+    }
+    user_params.line_number++;
+
+    if ((checker = getchar()) == EOF)
+        return 1;
+
+    user_params.delims_count = count_collumns()-1;
+    return 0;
+}
+int
+check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
+    if (user_params.line_data[(LINE_DATA_LEN - 1) - size_needed] != '\0')
+        return -1;
+    return 0;
+}
+int //vrati pocet sloupcu v souboru
+count_collumns(){
+    int count = 0;
+
+    for(int i = 0; user_params.line_data[i] != '\0'; i++){
+        if(user_params.line_data[i] == user_params.delim)
+        {
+            count++; //spocita pocet rozdělovačů
+        }
+    }
+    return count+1;
+}
+int
+(*find_command())(){
+    int (*chosen_command)();
+
+    for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
+        if ((chosen_command = get_command_pt(user_params.arguments[i])) != NULL){
+            for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
+                strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
+            return chosen_command;
+
+        }
+    }
+    return NULL;
+}
+void
+find_arguments(int argc, char **argv){
+    for (int i = optind, j = 0; i<argc; i++,j++){
+        strncpy(user_params.arguments[j], argv[i], ARG_LEN);
+    }
+}
+void
+separate_line_sel_from_args(){
+    for(int i=0; i<2; i++)
+        strncpy(user_params.line_selectors[i], user_params.arguments[i], ARG_LEN);
+
+    for(int i=0,j=2; j<NUMBER_OF_ARGUMENTS; i++, j++)
+        strncpy(user_params.arguments[i], user_params.arguments[j], ARG_LEN);
+}
 int
 irow(int last_line){
-    (void)last_line; //pičuje compiler a ja potřebuju testovat :)
+    (void)last_line;
     int selected_row = atoi(user_params.arguments[0]);
 
     if(user_params.line_number == selected_row){
-        int edit_size = count_collumns()-1;
+        int edit_size = user_params.delims_count;
+
         if (check_for_space(edit_size) != 0)
             return -1;
 
@@ -149,8 +348,6 @@ irow(int last_line){
         }
 
         printf("\n");
-
-
     }
 
     return 0;
@@ -179,15 +376,13 @@ drows(int last_line){
     if(selected_row1>selected_row2) //N<=M
         return -1;
 
-    if(user_params.line_number >= selected_row1 && user_params.line_number <= selected_row2){
-
+    if(user_params.line_number >= selected_row1 && 
+        user_params.line_number <= selected_row2){
         user_params.line_data[0] = '\0';
-
     }
 
     return 0;
 }
-
 //vrati index n-teho delimu
 int get_delim_index(int order){
     int appear = 0; //vyskyt delimu v radku
@@ -195,23 +390,30 @@ int get_delim_index(int order){
         if(user_params.line_data[i] == user_params.delim){
             appear++;
         }
-        //pokud je nalezeny delim tolikaty kolikaty chceme, vratime index
-        if(appear == order-1){
+        if(appear >= order-1){
             return i;
         }
     }
     return -1;
 }
 
-int //vrati delku pole
-get_len(char *arr){
-    int q = 0; //pocet znaku
-    for(int i = 0; arr[i] != '\0'; i++){
-            q++;
-    }
-    return q;
-}
+int //vlozi novy radek na konec souboru
+arow(int last_line){
+    if (!last_line){
+        return 0;
+    } else {
 
+        if (check_for_space(user_params.delims_count) != 0)
+            return -1;
+
+        printf("%s", user_params.line_data);
+        for(int i = 0; i<user_params.delims_count; i++){
+            printf("%c", user_params.delim);
+        }
+
+    }
+    return 0;
+}
 int //vlozi prazdny sloupec pred sloupec C
 icol(int last_line){
     (void)last_line;
@@ -227,26 +429,14 @@ icol(int last_line){
     if(index == -1)
         return -1;
 
-    //vsude +1 nez je potreba pro \0
-    char start[index+2], end[get_len(user_params.line_data)-index+1];
-    memset(start, 0, sizeof start); //vynulovani
-    memset(end, 0, sizeof end);
+    if(last_line)
+        return -1;
 
-    strncpy(start,user_params.line_data,index);
-    strcpy(end,user_params.line_data + index);
-
-    start[index]=user_params.delim;
-
-    char full[get_len(user_params.line_data)+edit_size+1];
-
-    memset(full, 0, sizeof full);
-    strcat(full,start);
-    strcat(full,end);
-
-    strcpy(user_params.line_data,full);
+    char arr[2];
+    arr[0]=user_params.delim;
+    insert_text(arr,index,index);
     return 0;
 }
-
 int
 acol(int last_line){
     (void)last_line;
@@ -266,12 +456,13 @@ int //odstrani sloupec N
 dcol(int last_line){
     (void)last_line;
     int selected_col = atoi(user_params.arguments[0]);
+    int cols = count_collumns();
 
-    if(selected_col>count_collumns())
+    if(selected_col>cols)
         return -1;
 
-    int cols = count_collumns();
     int index = get_delim_index(selected_col);
+
     if(cols == 1){
         memset(user_params.line_data, 0, sizeof LINE_DATA_LEN);
         return 0;
@@ -286,114 +477,393 @@ dcol(int last_line){
         }
 
         else{
-            int afterIndex = get_delim_index(selected_col+1);
-            //smazani textu mezi <index a afterindex)
-
-            char start[index+1], end[get_len(user_params.line_data)-index+1];
-            memset(start, 0, sizeof start); //vynulovani
-            memset(end, 0, sizeof end);
-
-            strncpy(start,user_params.line_data,index);
-            strcpy(end,user_params.line_data + afterIndex);
-
-            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
-
-            memset(full, 0, sizeof full);
-            strcat(full,start);
-            strcat(full,end);
-
-            strcpy(user_params.line_data,full);
+            int end_index = get_delim_index(selected_col+1);
+            insert_text("",index,end_index);
         }
     }
     return 0;
 }
-
 int //smaze sloupce mezi N a M
 dcols(int last_line){
     (void)last_line;
 
-    if(!last_line){
+    if(last_line)
+        return -1;
 
-        int selected_col1 = atoi(user_params.arguments[0]);
-        int selected_col2 = atoi(user_params.arguments[1]);
+    int selected_col1 = atoi(user_params.arguments[0]);
+    int selected_col2 = atoi(user_params.arguments[1]);
 
-        if(selected_col1>selected_col2) //N<=M
-            return -1;
+    if(selected_col1>selected_col2) //N<=M
+        return -1;
 
-        if(selected_col2>count_collumns())
-            return -1;
+    if(selected_col2>count_collumns())
+        return -1;
 
-        int index = get_delim_index(selected_col1);
-        int afterIndex = get_delim_index(selected_col2+1);
-        printf("i%da%d",index,afterIndex);
-        //smazani textu mezi <index a afterindex)
+    int index = get_delim_index(selected_col1);
+    int end_index = get_delim_index(selected_col2+1);
 
-        if(index!=0){
-            char start[index+1], end[get_len(user_params.line_data)-index+1];
+    insert_text("",index,end_index);
 
-            memset(start, 0, sizeof start); //vynulovani
-            memset(end, 0, sizeof end);
-
-
-            strncpy(start,user_params.line_data,index);
-
-            strcpy(end,user_params.line_data + afterIndex);
-
-            char full[get_len(user_params.line_data)-(afterIndex-index)+1];
-
-            memset(full, 0, sizeof full);
-
-            strcat(full,start);
-            strcat(full,end);
-
-            strcpy(user_params.line_data,full);
-        }
-        else{
-
-        }
-        return 0;
-    }
-    return -1;
+    return 0;
 }
-int
+
+int //nastavi do bunky(sloupce) (1. arg) string (2. arg)
 cset(int last_line){
     (void)last_line;
     int selected_cell = atoi(user_params.arguments[0]);
     char str[ARG_LEN];
     int collumns;
-    strncpy(str,user_params.arguments[1],ARG_LEN);
-    printf("cell %d%s\n", selected_cell, str);
+
     collumns = count_collumns();
-    printf("collumns %d\n", collumns);
-    if(selected_cell > collumns){
+    if((selected_cell > collumns)||(selected_cell < 1)){
 	return -1; //kontrola vstupu
     }
-    return -1;
+    strncpy(str,user_params.arguments[1],ARG_LEN);
+    //printf("cell %d string  %s\n", selected_cell, str);
+    //printf("collumns %d\n", collumns);
+    int start_index = get_delim_index(selected_cell) + 1; //od ktereho indexu zacina bunka kam chcu zapsat
+    if(selected_cell == 1)
+	    start_index --;
+    //printf("start index %d\n", start_index);
+    int end_index = get_delim_index(selected_cell+1);
+    //printf("end index %d\n", end_index);
+    insert_text(str, start_index, end_index);
+    return 0;
+
+}
+int //vrati text mezi zadanymi indexy
+get_text(char* sub_text, int start_index, int end_index){
+
+    for(int i = 0; i<end_index-start_index; i++){
+        sub_text[i]=user_params.line_data[start_index+i];
+    }
+    return 0;
+}
+int //funkce upravi hodnotu indexu podle toho v jakem sloupci se s indexem pracuje
+correct_index(int index, int *p_end_index, int selected_col, int *p_correction){
+    //korekce indexu pro sloupce od 2
+    *p_correction = 1;
+    *p_end_index = 0;
+    //osetreni 1 sloupce + pokud je prazdny
+    if(index == 0){
+        if(user_params.line_data[0] == user_params.delim)
+            return -1;
+        *p_correction = 0;
+    }
+
+    if(selected_col == count_collumns()){
+        if((index+1) == get_len(user_params.line_data))
+            return -1;
+        //osetreni posledniho sloupce
+        *p_end_index = get_len(user_params.line_data);
+    }
+    else{
+        *p_end_index = get_delim_index(selected_col+1);
+    }
+    return 0;
 }
 int
 to_lower(int last_line){
     (void)last_line;
-    return -1;
+
+    int selected_col = atoi(user_params.arguments[0]);
+    int index = get_delim_index(selected_col);
+    int end_index, correction;
+
+    if(correct_index(index, &end_index, selected_col, &correction) == -1)
+        return 0;
+
+    char sub_text[end_index-index+1];
+    memset(sub_text, 0, sizeof sub_text);
+    get_text(sub_text,index+correction,end_index);
+    //uprava textu ve sloupci
+    for(int i=0; i<get_len(sub_text); i++){
+        sub_text[i]=tolower(sub_text[i]);
+    }
+
+    insert_text(sub_text,index+correction,end_index);
+
+    return 0;
 }
 int
-touuper(int last_line){
+to_upper(int last_line){
     (void)last_line;
-    return -1;
+
+    int selected_col = atoi(user_params.arguments[0]);
+    int index = get_delim_index(selected_col);
+    int end_index, correction;
+
+    if(correct_index(index, &end_index, selected_col, &correction) == -1)
+        return 0;
+
+    char sub_text[end_index-index+1];
+    memset(sub_text, 0, sizeof sub_text);
+    get_text(sub_text,index+correction,end_index);
+    //uprava textu ve sloupci
+    for(int i=0; i<get_len(sub_text); i++){
+        sub_text[i]=toupper(sub_text[i]);
+    }
+    insert_text(sub_text,index+correction,end_index);
+
+    return 0;
 }
 int
 roundup(int last_line){
     (void)last_line;
-    return -1;
+    if(last_line)
+        return -1;
+
+    int selected_col = atoi(user_params.arguments[0]);
+    int index = get_delim_index(selected_col);
+    int end_index, correction;
+
+    if(correct_index(index, &end_index, selected_col, &correction) == -1)
+        return 0;
+
+    char sub_text[end_index-index+1];
+    memset(sub_text, 0, sizeof sub_text);
+    get_text(sub_text,index+correction,end_index);
+    //uprava textu ve sloupci
+    char *pend;
+    float f1 = strtof(sub_text, &pend);
+
+    //TODO: osetrit pokud ve sloupci neni cislo
+
+    sprintf(sub_text, "%d", (int)round(f1));
+
+    insert_text(sub_text,index+correction,end_index);
+
+    return 0;
 }
 int
-copy(int last_line){
+copy(int last_line){ 
     (void)last_line;
-    return -1;
+    int n_col = atoi(user_params.arguments[0]);
+    int m_col = atoi(user_params.arguments[1]);
+    int collumns = count_collumns();
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+	return -1;
+    //printf("delimindex %d\n", get_delim_index(n_col));
+    
+    if(n_col == collumns){ //osetreni pokud N==collums 
+
+	int end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+
+    	int n_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_start_index = 0;
+    
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+
+        int m_end_index = get_delim_index(m_col+1) + 1;
+    
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index-1);
+        //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+        insert_text(n_text, m_start_index, m_end_index-1);
+        return 0;
+    }else if(m_col == collumns){ //osetreni pokud je M==collumns
+
+	int end_of_line_index = 0; //kdeje /n
+        for(int i = 0; i<LINE_DATA_LEN; i++){
+    	    if(user_params.line_data[i] == 0){
+	   	 end_of_line_index=i;
+	   	 break;
+	   	 }	
+	}
+
+    	int m_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+	    n_start_index = 0;
+
+        int n_end_index = get_delim_index(n_col+1) + 1;
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+	
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index-1);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index);
+        //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+        insert_text(n_text, m_start_index, m_end_index);
+        return 0;
+    }else {
+    	int n_start_index = get_delim_index(n_col) + 1;
+    	if(n_col ==1)
+	    n_start_index = 0;
+
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_start_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_start_index = 0;
+
+    	int m_end_index = get_delim_index(m_col+1) + 1;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index-1);
+    	char m_text[m_end_index-m_start_index + 1];
+    	memset(m_text, 0, sizeof m_text);
+    	get_text(m_text,m_start_index,m_end_index-1);
+    	//printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+    	insert_text(n_text, m_start_index, m_end_index-1);
+    	return 0;
+    }
 }
 int
 swap(int last_line){
     (void)last_line;
-    return -1;
+    
+    int n_col = atoi(user_params.arguments[0]);
+    int m_col = atoi(user_params.arguments[1]);
+    int collumns = count_collumns();
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+	return -1;
+    //printf("delimindex %d\n", get_delim_index(n_col));
+    
+    if(n_col == collumns){ //osetreni pokud N==collums 
+
+	int end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+
+    	int n_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_start_index = 0;
+    
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+
+        int m_end_index = get_delim_index(m_col+1) + 1;
+    
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index-1);
+        //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+        insert_text(n_text, m_start_index, m_end_index-1);
+	//osetreni pokud je N>M ...nove indexy
+        int n_n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_n_start_index = 0;
+	int new_end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 new_end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+	int n_n_end_index = new_end_of_line_index;
+
+	
+        insert_text(m_text, n_n_start_index, n_n_end_index);
+	return 0;
+
+    }else if(m_col == collumns){ //osetreni pokud je M==collumns
+
+	int end_of_line_index = 0; //kdeje /n
+        for(int i = 0; i<LINE_DATA_LEN; i++){
+    	    if(user_params.line_data[i] == 0){
+	   	 end_of_line_index=i;
+	   	 break;
+	   	 }	
+	}
+
+    	int m_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+	    n_start_index = 0;
+
+        int n_end_index = get_delim_index(n_col+1) + 1;
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+	
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index-1);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index);
+        insert_text(n_text, m_start_index, m_end_index);
+        insert_text(m_text, n_start_index, n_end_index-1);
+        return 0;
+    }else if(n_col > m_col){
+    	int n_start_index = get_delim_index(n_col) + 1;
+    	if(n_col ==1)
+	    n_start_index = 0;
+
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_start_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_start_index = 0;
+
+    	int m_end_index = get_delim_index(m_col+1) + 1;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index-1);
+    	char m_text[m_end_index-m_start_index + 1];
+    	memset(m_text, 0, sizeof m_text);
+    	get_text(m_text,m_start_index,m_end_index-1);
+        insert_text(n_text, m_start_index, m_end_index-1);
+	
+	//osetreni pokud je N>M ...nove indexy
+        int n_n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_n_start_index = 0;
+	int n_n_end_index = n_n_start_index + get_len(n_text);
+        insert_text(m_text, n_n_start_index, n_n_end_index);
+    	return 0;
+    }else {
+    	int n_start_index = get_delim_index(n_col) + 1;
+    	if(n_col ==1)
+	    n_start_index = 0;
+
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_start_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_start_index = 0;
+
+    	int m_end_index = get_delim_index(m_col+1) + 1;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index-1);
+    	char m_text[m_end_index-m_start_index + 1];
+    	memset(m_text, 0, sizeof m_text);
+    	get_text(m_text,m_start_index,m_end_index-1);
+      	insert_text(n_text, m_start_index, m_end_index-1);
+        insert_text(m_text, n_start_index, n_end_index-1);
+    	return 0;
+    }
+
 }
 int
 move(int last_line){
@@ -462,134 +932,108 @@ rcount(int last_line){
 }
 int
 rows(int last_line){
-    (void)last_line;
+    int n, m;
+    n = check_for_dash(user_params.line_selectors[0]);
+    m = check_for_dash(user_params.line_selectors[1]);
+    if (m == -1)
+        m = user_params.line_number + 1;
+
+    if (n==0 || m==0 || m<n){ printf("Invalid lines!\r\n");
+        return -1;
+    }
+
+    if (n == -1){
+        if (last_line)
+            return 0;
+        return 1;
+    }
+
+    if (n<=user_params.line_number && user_params.line_number<m)
+        return 0;
+
+    if (last_line && m>user_params.line_number){
+        printf("Last line reached, but you entered more lines!\n\r");
+        return -1;
+    }
+
     return -1;
 }
 int
 beginswith(int last_line){
     (void)last_line;
-    return -1;
+    char *tmp_pt;
+    int pos_of_str;
+
+    int selected_col = atoi(user_params.line_selectors[0]);
+    int cols = count_collumns();
+
+    if(selected_col>cols)
+        return -1;
+
+    tmp_pt = strstr(user_params.line_data, user_params.line_selectors[1]);
+    if (tmp_pt == NULL)
+        return -1;
+
+    pos_of_str = tmp_pt - user_params.line_data;
+
+    cols = find_word_column(pos_of_str);
+    if(cols != selected_col)
+        return -1;
+
+    /* Check if there is delimiter before string except the first one */
+    if(pos_of_str != 0 && user_params.line_data[pos_of_str - 1] != user_params.delim)
+        return -1;
+
+    return 0;
 }
 int
 contains(int last_line){
     (void)last_line;
-    return -1;
-}
 
-int //vlozi novy radek na konec souboru
-arow(int last_line){
-    if (!last_line){
-        return 0;
-    } else {
+    char *tmp_pt;
+    int pos_of_str;
 
-        if (check_for_space(delims) != 0)
-            return -1;
+    int selected_col = atoi(user_params.line_selectors[0]);
+    int cols = count_collumns();
+    int last_column = cols;
 
-        for(int i = 0; i<delims; i++){
-            printf("%c", user_params.delim);
-        }
-
-    }
-    return 0;
-}
-
-int
-(*get_func_pt(char *command))(){
-    for (int i=0; i<NUMBER_OF_COMMANDS; i++){
-        if (strcmp(command, commands[i]) == 0)
-            return functions[i];
-    }
-    return NULL;
-}
-
-int
-run_tests(int(*chosen_command)()){
-    int result;
-
-    printf("----TESTING----\r\n");
-    result = scan_input();
-
-    assert(result == 0);
-    assert(user_params.line_data[LINE_DATA_LEN] == '\0');
-
-    result = chosen_command();
-    assert(result == 0);
-
-    printf("----TESTS SUCCESSFUL----\r\n");
-    return 0;
-}
-
-void
-print_usage(){
-    printf("Usage: ./sheet -d <delim> <table command> | "\
-           "-d <delim> <line select> <data command>\n\rFor testing: -t\r\n");
-}
-
-
-int /* To prevent buffer overflow */
-scan_input(){
-    char ch;
-
-    memset(user_params.line_data, 0, sizeof(user_params.line_data));
-    for(int i=0; ((ch = getchar()) != EOF && ch != '\n') && \
-            (i < LINE_DATA_LEN); i++){
-      user_params.line_data[i] = ch;
-
-    }
-    user_params.line_number++;
-    if (ch == EOF)
-        return 1;
-    delims = count_collumns()-1;
-    return 0;
-}
-
-int
-check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
-    if (user_params.line_data[(LINE_DATA_LEN - 1) - size_needed] != '\0')
+    if(selected_col>cols)
         return -1;
+
+    tmp_pt = strstr(user_params.line_data, user_params.line_selectors[1]);
+    if (tmp_pt == NULL)
+        return -1;
+
+    pos_of_str = tmp_pt - user_params.line_data;
+    cols = find_word_column(pos_of_str);
+
+    if(cols != selected_col)
+        return -1;
+
+    /* Check if there is delimiter, with exception of first and last string */
+    if((pos_of_str != 0 &&
+      user_params.line_data[pos_of_str - 1] != user_params.delim) ||
+      ((user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])]) != user_params.delim && 
+      cols != last_column))
+        return -1;
+    
+    if(pos_of_str == 0 && 
+        user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])] != user_params.delim)  
+        return -1;
+
+    /* I can check for \0 without seg fault because if the STR given as parameter *
+     * would be larger then the word it self, strstr wouldn't find it             */
+    if(cols == last_column &&
+        user_params.line_data[pos_of_str + strlen(user_params.line_selectors[1])] != '\0' )
+        return -1;
+
     return 0;
 }
-
-int //vrati pocet sloupcu v souboru
-count_collumns(){
-    int count = 0;
-
-    for(int i = 0; user_params.line_data[i] != '\0'; i++){
-        if(user_params.line_data[i] == user_params.delim)
-        {
-            count++; //spocita pocet rozdělovačů
-        }
-    }
-    return count+1;
-}
-
-int
-(*find_command())(){
-    int (*chosen_command)();
-
-    for (int i = 0; i < NUMBER_OF_ARGUMENTS; i++){
-        if ((chosen_command = get_func_pt(user_params.arguments[i])) != NULL){
-            for (int j=i; j<NUMBER_OF_ARGUMENTS; j++)
-                strncpy(user_params.arguments[j], user_params.arguments[j + 1], ARG_LEN);
-            return chosen_command;
-
-        }
-    }
-    return NULL;
-}
-
-void
-find_arguments(int argc, char **argv){
-    for (int i = optind, j = 0; i<argc; i++,j++){
-        strncpy(user_params.arguments[j], argv[i], ARG_LEN);
-    }
-}
-
-
 int
 main(int argc, char **argv){
     int opt, perim_chosen = 0, test_flag = 0, result = -1;
     int (*chosen_command)();
+    int (*line_sel)();
 
     if (argc == 1){
         print_usage();
@@ -627,6 +1071,8 @@ main(int argc, char **argv){
     {
         find_arguments(argc, argv);
 
+        line_sel = find_line_sel();
+
         chosen_command = find_command();
         if (chosen_command == NULL)
             return -1;
@@ -641,15 +1087,31 @@ main(int argc, char **argv){
         return result;
     }
 
-    while (scan_input() != 1){
-        if ((result = chosen_command(0)) != 0)
+    if (line_sel == NULL){
+        while (scan_input() != 1){
+            if ((result = chosen_command(0)) != 0)
+                return -1;
+            printf("%s\n", user_params.line_data);
+        }
+
+        if ((result = chosen_command(1)) != 0)
             return -1;
-        printf("%s\n", user_params.line_data);
+
+    } else {
+        separate_line_sel_from_args();
+        while (scan_input() != 1){
+            if (line_sel(0) == 0){
+                if ((result = chosen_command(0)) != 0)
+                    return -1;
+            }
+            printf("%s\n", user_params.line_data);
+        }
+        if (line_sel(1) == 0){
+            if ((result = chosen_command(1)) != 0)
+                return -1;
+        }
     }
 
-    if ((result = chosen_command(1)) != 0)
-        return -1;
     printf("%s\n", user_params.line_data);
-
     return 0;
 }
