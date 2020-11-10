@@ -694,7 +694,47 @@ cmin(int last_line){
 int
 cmax(int last_line){
     (void)last_line;
-    return -1;
+    int max = -1, value=0;
+    int cols = count_collumns();
+    int column = atoi(user_params.arguments[0]);
+    int col_one = atoi(user_params.arguments[1]);
+    int col_last = atoi(user_params.arguments[2]);
+    int sel_col = col_one;
+    char max_char[ARG_LEN];
+
+    if (col_last > cols || column > cols || col_one > col_last)
+        return -1;
+
+    do {
+    cols = get_delim_index(sel_col);
+    for (int i=sel_col+1; user_params.line_data[i]!=user_params.delim; i++){
+            value += (int)user_params.line_data[i];
+        }
+    
+    if (max == -1)
+        max = value; 
+    if (value>max)
+        max = value;
+    sel_col++;
+    } while (sel_col <= col_last);
+
+    cols = get_delim_index(column);
+    sprintf(max_char,":%d",max);
+
+    for (int i=0; i<ARG_LEN; i++){
+        if (max_char[i] == '\0'){
+            if(i<ARG_LEN - 1){
+                max_char[i] = ':';
+                break;
+            } else {
+                return -1;
+            }
+        }
+    }
+    //TODO: Check for space
+    insert_text(max_char, cols, cols+1);
+
+    return 0;
 }
 int
 ccount(int last_line){
