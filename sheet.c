@@ -8,7 +8,7 @@
 
 #define NUMBER_OF_COMMANDS (28)
 #define NUMBER_OF_LINE_SELS (3)
-#define NUMBER_OF_ARGUMENTS (5)
+#define NUMBER_OF_ARGUMENTS (10)
 #define LINE_DATA_LEN (10240)
 #define ARG_LEN (100)
 
@@ -274,9 +274,15 @@ scan_input(){
         is_checker = 1;
      }
 
-    for(int i=is_checker; ((ch = getchar()) != EOF && ch != '\n') && \
-            (i < LINE_DATA_LEN); i++){
-      user_params.line_data[i] = ch;
+    for(int i=is_checker, counter; ((ch = getchar()) != EOF && ch != '\n') && \
+            (i < LINE_DATA_LEN); i++, counter++){
+        if (ch == ':')
+            counter = 0;
+        user_params.line_data[i] = ch;
+        if (counter>99){
+            printf("Cell too big, max chars in cell is 100\n");
+            return -1;
+        }
     }
     user_params.line_number++;
 
@@ -643,7 +649,47 @@ cavg(int last_line){
 int
 cmin(int last_line){
     (void)last_line;
-    return -1;
+    int min = -1, value=0;
+    int cols = count_collumns();
+    int column = atoi(user_params.arguments[0]);
+    int col_one = atoi(user_params.arguments[1]);
+    int col_last = atoi(user_params.arguments[2]);
+    int sel_col = col_one;
+    char min_char[ARG_LEN];
+
+    if (col_last > cols || column > cols || col_one > col_last)
+        return -1;
+
+    do {
+    cols = get_delim_index(sel_col);
+    for (int i=sel_col+1; user_params.line_data[i]!=user_params.delim; i++){
+            value += (int)user_params.line_data[i];
+        }
+    
+    if (min == -1)
+        min = value; 
+    if (value<min)
+        min = value;
+    sel_col++;
+    } while (sel_col <= col_last);
+
+    cols = get_delim_index(column);
+    sprintf(min_char,":%d",min);
+
+    for (int i=0; i<ARG_LEN; i++){
+        if (min_char[i] == '\0'){
+            if(i<ARG_LEN - 1){
+                min_char[i] = ':';
+                break;
+            } else {
+                return -1;
+            }
+        }
+    }
+    //TODO: Check for space
+    insert_text(min_char, cols, cols+1);
+
+    return 0;
 }
 int
 cmax(int last_line){
@@ -708,7 +754,7 @@ rows(int last_line){
         return 1;
     }
 
-    if (n<=user_params.line_number && user_params.line_number<m)
+    if (n<=user_params.line_number && user_params.line_number<=m)
         return 0;
 
     if (last_line && m>user_params.line_number){
@@ -849,26 +895,34 @@ main(int argc, char **argv){
 
     if (line_sel == NULL){
         while (scan_input() != 1){
-            if ((result = chosen_command(0)) != 0)
+            if ((result = chosen_command(0)) != 0){
+        printf("Command failed, check your inputs!\n");
                 return -1;
+        }
             printf("%s\n", user_params.line_data);
         }
 
-        if ((result = chosen_command(1)) != 0)
+        if ((result = chosen_command(1)) != 0){
+        printf("Command failed, check your inputs!\n");
             return -1;
+    }
 
     } else {
         separate_line_sel_from_args();
         while (scan_input() != 1){
             if (line_sel(0) == 0){
-                if ((result = chosen_command(0)) != 0)
+                if ((result = chosen_command(0)) != 0){
+                printf("Command failed, check your inputs!\n");
                     return -1;
+        }
             }
             printf("%s\n", user_params.line_data);
         }
         if (line_sel(1) == 0){
-            if ((result = chosen_command(1)) != 0)
+            if ((result = chosen_command(1)) != 0){
+            printf("Command failed, check your inputs!\n");
                 return -1;
+        }
         }
     }
 
