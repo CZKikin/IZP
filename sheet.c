@@ -274,7 +274,7 @@ scan_input(){
         is_checker = 1;
      }
 
-    for(int i=is_checker, counter; ((ch = getchar()) != EOF && ch != '\n') && \
+    for(int i=is_checker, counter=0; ((ch = getchar()) != EOF && ch != '\n') && \
             (i < LINE_DATA_LEN); i++, counter++){
         if (ch == ':')
             counter = 0;
@@ -409,13 +409,13 @@ arow(int last_line){
         return 0;
     } else {
 
-        if (check_for_space(user_params.delims_count) != 0)
+        if (check_for_space(user_params.delims_count+1) != 0)
             return -1;
 
-        printf("%s", user_params.line_data);
-        for(int i = 0; i<user_params.delims_count; i++){
-            printf("%c", user_params.delim);
-        }
+        char str_for_strncat[2] = {user_params.delim, '\0'};
+        strncat(user_params.line_data, "\n", 2);
+        for (int i=0; i<=user_params.delims_count; i++)
+            strncat(user_params.line_data, str_for_strncat, 1);
 
     }
     return 0;
@@ -674,19 +674,9 @@ cmin(int last_line){
     } while (sel_col <= col_last);
 
     cols = get_delim_index(column);
-    sprintf(min_char,":%d",min);
+    sprintf(min_char,":%d:",min);
 
-    for (int i=0; i<ARG_LEN; i++){
-        if (min_char[i] == '\0'){
-            if(i<ARG_LEN - 1){
-                min_char[i] = ':';
-                break;
-            } else {
-                return -1;
-            }
-        }
-    }
-    //TODO: Check for space
+    check_for_space(strlen(min_char));
     insert_text(min_char, cols, cols+1);
 
     return 0;
@@ -719,19 +709,9 @@ cmax(int last_line){
     } while (sel_col <= col_last);
 
     cols = get_delim_index(column);
-    sprintf(max_char,":%d",max);
+    sprintf(max_char,":%d:",max);
 
-    for (int i=0; i<ARG_LEN; i++){
-        if (max_char[i] == '\0'){
-            if(i<ARG_LEN - 1){
-                max_char[i] = ':';
-                break;
-            } else {
-                return -1;
-            }
-        }
-    }
-    //TODO: Check for space
+    check_for_space(strlen(max_char));
     insert_text(max_char, cols, cols+1);
 
     return 0;
@@ -920,8 +900,10 @@ main(int argc, char **argv){
         line_sel = find_line_sel();
 
         chosen_command = find_command();
-        if (chosen_command == NULL)
+        if (chosen_command == NULL){
+            printf("Unrecognized command!\n\r");
             return -1;
+        }
 
     } else {
         printf("Missing arguments\r\n");
