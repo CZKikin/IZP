@@ -731,7 +731,139 @@ copy(int last_line){
 int
 swap(int last_line){
     (void)last_line;
-    return -1;
+    
+    int n_col = atoi(user_params.arguments[0]);
+    int m_col = atoi(user_params.arguments[1]);
+    int collumns = count_collumns();
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+	return -1;
+    //printf("delimindex %d\n", get_delim_index(n_col));
+    
+    if(n_col == collumns){ //osetreni pokud N==collums 
+
+	int end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+
+    	int n_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_start_index = 0;
+    
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+
+        int m_end_index = get_delim_index(m_col+1) + 1;
+    
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index-1);
+        //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
+        insert_text(n_text, m_start_index, m_end_index-1);
+	//osetreni pokud je N>M ...nove indexy
+        int n_n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_n_start_index = 0;
+	int new_end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 new_end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+	int n_n_end_index = new_end_of_line_index;
+
+	
+        insert_text(m_text, n_n_start_index, n_n_end_index);
+	return 0;
+
+    }else if(m_col == collumns){ //osetreni pokud je M==collumns
+
+	int end_of_line_index = 0; //kdeje /n
+        for(int i = 0; i<LINE_DATA_LEN; i++){
+    	    if(user_params.line_data[i] == 0){
+	   	 end_of_line_index=i;
+	   	 break;
+	   	 }	
+	}
+
+    	int m_end_index = end_of_line_index;
+	
+        int n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+	    n_start_index = 0;
+
+        int n_end_index = get_delim_index(n_col+1) + 1;
+        int m_start_index = get_delim_index(m_col) + 1;
+        if(m_col ==1)
+	    m_start_index = 0;
+	
+        char n_text[n_end_index-n_start_index+1];
+        memset(n_text, 0, sizeof n_text);
+        get_text(n_text,n_start_index,n_end_index-1);
+        char m_text[m_end_index-m_start_index + 1];
+        memset(m_text, 0, sizeof m_text);
+        get_text(m_text,m_start_index,m_end_index);
+        insert_text(n_text, m_start_index, m_end_index);
+        insert_text(m_text, n_start_index, n_end_index-1);
+        return 0;
+    }else if(n_col > m_col){
+    	int n_start_index = get_delim_index(n_col) + 1;
+    	if(n_col ==1)
+	    n_start_index = 0;
+
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_start_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_start_index = 0;
+
+    	int m_end_index = get_delim_index(m_col+1) + 1;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index-1);
+    	char m_text[m_end_index-m_start_index + 1];
+    	memset(m_text, 0, sizeof m_text);
+    	get_text(m_text,m_start_index,m_end_index-1);
+        insert_text(n_text, m_start_index, m_end_index-1);
+	
+	//osetreni pokud je N>M ...nove indexy
+        int n_n_start_index = get_delim_index(n_col) + 1;
+        if(n_col ==1)
+   	    n_n_start_index = 0;
+	int n_n_end_index = n_n_start_index + get_len(n_text);
+        insert_text(m_text, n_n_start_index, n_n_end_index);
+    	return 0;
+    }else {
+    	int n_start_index = get_delim_index(n_col) + 1;
+    	if(n_col ==1)
+	    n_start_index = 0;
+
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_start_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_start_index = 0;
+
+    	int m_end_index = get_delim_index(m_col+1) + 1;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index-1);
+    	char m_text[m_end_index-m_start_index + 1];
+    	memset(m_text, 0, sizeof m_text);
+    	get_text(m_text,m_start_index,m_end_index-1);
+      	insert_text(n_text, m_start_index, m_end_index-1);
+        insert_text(m_text, n_start_index, n_end_index-1);
+    	return 0;
+    }
+
 }
 int
 move(int last_line){
