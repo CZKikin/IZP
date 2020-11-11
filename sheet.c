@@ -1212,6 +1212,7 @@ move(int last_line){
     }
     insert_text("", delim_index, (delim_index + n_text_size));
     return 0;
+    //dodelat osetreni pro posledni radek
 }
 int
 csum(int last_line){
