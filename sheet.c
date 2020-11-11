@@ -153,15 +153,39 @@ struct params user_params = {
 
 char checker = '\0';
 
-int //vrati delku pole
+/*
+ * Function: get_len
+ * --------------------
+ *  Vrátí délku pole
+ *
+ *  arr: Pole
+ *
+ *  returns: Délku pole
+ *
+ */
+int 
 get_len(char *arr){
-    int q = 0; //pocet znaku
+    int char_count = 0;
     for(int i = 0; arr[i] != '\0'; i++){
-            q++;
+            char_count++;
     }
-    return q;
+    return char_count;
 }
-int //vlozi zadany text mezi 2 zadane indexy
+/*
+ * Function: insert_text
+ * --------------------
+ *  Vloží zadaný text do user_params.line_data mezi 2 zadané indexy
+ *
+ *  text: Text který se má vložit
+ *
+ *  start_index: Počátek
+ *
+ *  end_index: Konec
+ *
+ *  returns: 0, při chybě -1
+ *
+ */
+int
 insert_text(char *text, int start_index, int end_index){
 
     int text_len = get_len(text);
@@ -170,7 +194,7 @@ insert_text(char *text, int start_index, int end_index){
         return -1;
 
     char start[start_index+1], end[get_len(user_params.line_data)-end_index+1];
-    memset(start, 0, sizeof start); //vynulovani
+    memset(start, 0, sizeof start);
     memset(end, 0, sizeof end);
 
     strncpy(start,user_params.line_data,start_index);
@@ -187,6 +211,14 @@ insert_text(char *text, int start_index, int end_index){
 
     return 0;
 }
+/*
+ * Function: validate_second_command
+ * --------------------
+ *  Zkontroluje, zda je přítomen druhý příkaz
+ *
+ *  returns: 0 pokud je přítomen, jinak -1
+ *
+ */
 int
 validate_second_command(){
     user_params.second_command = find_command();
@@ -196,12 +228,32 @@ validate_second_command(){
 
     return 0;
 }
+/*
+ * Function: check_for_dash
+ * --------------------
+ *  Zjistí, zda je v argumentu -
+ *
+ *  argument: String argumentu
+ *
+ *  returns: Číselnou hodnotu stringu, při nalezení pomlčky -1
+ *
+ */
 int
 check_for_dash(char *argument){
     if (argument[0] == '-')
         return -1;
     return atoi(argument);
 }
+/*
+ * Function: find_word_column
+ * --------------------
+ *  Najde sloupec slova
+ *
+ *  pos_of_str: Index slova, jenž sloupec hledáme
+ *
+ *  returns: Sloupec ve kterém se slovo nachází
+ *
+ */
 int
 find_word_column(int pos_of_str){
     int cols = 1; /* because lol:lol are 2 cols.. */
@@ -211,6 +263,17 @@ find_word_column(int pos_of_str){
     }    
     return cols;
 }
+/*
+ * Function: get_line_sel_pt
+ * --------------------
+ *  Vrátí pointer na fci line_selectoru
+ *
+ *  line_sel: String line select commandu
+ *
+ *  returns: Když najde line_selector, tak na něj vrátí pointer
+ *           Když ne, vrátí NULL
+ *
+ */
 int
 (*get_line_sel_pt(char *line_sel))(){
     for (int i=0; i<NUMBER_OF_LINE_SELS; i++){
@@ -219,6 +282,14 @@ int
     }
     return NULL;
 }
+/*
+ * Function: find_line_sel
+ * --------------------
+ *  Prohledá argumenty zadané při spuštění s cílem najít line_selector
+ *
+ *  returns: Pointer na fci line_selectoru, při nenalezení NULL
+ *
+ */
 int
 (*find_line_sel())(){
     int (*chosen_command)();
@@ -234,6 +305,17 @@ int
         return NULL;
 
 }
+/*
+ * Function: get_command_pt
+ * --------------------
+ *  Vrátí pointer na fci commandu
+ *
+ *  command: String commandu
+ *
+ *  returns: Když najde command, tak na něj vrátí pointer
+ *           Když ne, vrátí NULL
+ *
+ */
 int
 (*get_command_pt(char *command))(){
     for (int i=0; i<NUMBER_OF_COMMANDS; i++){
@@ -242,6 +324,15 @@ int
     }
     return NULL;
 }
+/*
+ * Function: run_tests
+ * --------------------
+ *  Funkce sloužící k testování 
+ *
+ *  chosen_command: Zvolený příkaz 
+ *
+ *  returns: 0
+ */
 int
 run_tests(int(*chosen_command)()){
     int result;
@@ -258,12 +349,26 @@ run_tests(int(*chosen_command)()){
     printf("----TESTS SUCCESSFUL----\r\n");
     return 0;
 }
+/*
+ * Function: print_usage
+ * --------------------
+ *  Vypíše syntaxy spouštění
+ */
 void
 print_usage(){
     printf("Usage: ./sheet -d <delim> <table command> | "\
            "-d <delim> <line select> <data command>\n\rFor testing: -t\r\n");
 }
-int /* To prevent buffer overflow */
+/*
+ * Function:  scan_input
+ * --------------------
+ *  Načte soubor, zkontroluje buňky, sečte sloupce
+ *  Zabraňuje přetečení bufferu při načítání
+ *
+ *  returns: 0, při posledním řádku 1, při chybě -1
+ *
+ */
+int
 scan_input(){
     char ch;
     int is_checker = 0;
@@ -292,24 +397,49 @@ scan_input(){
     user_params.delims_count = count_collumns()-1;
     return 0;
 }
+/*
+ * Function: check_for_space
+ * --------------------
+ *  Zjistí, zda je místo pro přidání stringu do user_params.line_data
+ *
+ *  size_needed: Potřebné místo pro uložení stringu
+ *
+ *  returns: při chybě -1
+ *
+ */
 int
 check_for_space(size_t size_needed){     /* -1 because indexing from 0 */
     if (user_params.line_data[(LINE_DATA_LEN - 1) - size_needed] != '\0')
         return -1;
     return 0;
 }
-int //vrati pocet sloupcu v souboru
+/*
+ * Function: count_columns
+ * --------------------
+ *  Vrátí počet sloupců v řádku
+ *
+ *  returns: počet sloupců
+ */
+int
 count_collumns(){
     int count = 0;
 
     for(int i = 0; user_params.line_data[i] != '\0'; i++){
         if(user_params.line_data[i] == user_params.delim)
         {
-            count++; //spocita pocet rozdělovačů
+            count++;
         }
     }
     return count+1;
 }
+/*
+ * Function: find_command
+ * --------------------
+ *  Prohledá argumenty zadané při spuštění s cílem najít command
+ *
+ *  returns: Pointer na fci commandu, při nenalezení NULL
+ *
+ */
 int
 (*find_command())(){
     int (*chosen_command)();
@@ -324,12 +454,22 @@ int
     }
     return NULL;
 }
+/*
+ * Function: find_arguments
+ * --------------------
+ *  Prohledá argumenty v argv a zapíše je user_params.arguments
+ */
 void
 find_arguments(int argc, char **argv){
     for (int i = optind, j = 0; i<argc; i++,j++){
         strncpy(user_params.arguments[j], argv[i], ARG_LEN);
     }
 }
+/*
+ * Function: separate_line_sel_from_args
+ * --------------------
+ *  Prohledá argumenty a odseparuje argumenty pro line_selecor od argumentů
+ */
 void
 separate_line_sel_from_args(){
     for(int i=0; i<2; i++)
@@ -338,6 +478,96 @@ separate_line_sel_from_args(){
     for(int i=0,j=2; j<NUMBER_OF_ARGUMENTS; i++, j++)
         strncpy(user_params.arguments[i], user_params.arguments[j], ARG_LEN);
 }
+/*
+ * Function: get_delim_index
+ * --------------------
+ *  Vrátí index n-tého delimiteru
+ *
+ *  order: číslo delimu
+ *
+ *  returns: Při chybě -1, jinak index n-tého delimu
+ */
+int
+get_delim_index(int order){
+    int appear = 0; 
+    for(int i = 0; i<LINE_DATA_LEN; i++){
+        if(user_params.line_data[i] == user_params.delim){
+            appear++;
+        }
+        if(appear >= order-1){
+            return i;
+        }
+    }
+    return -1;
+}
+/*
+ * Function: get_text
+ * --------------------
+ *  Vrátí text mezi zadanými indexi
+ *
+ *  sub_text: String do kterého se uloží text
+ *
+ *  start_index: Začátek
+ *
+ *  end_index: Konec
+ *
+ *  returns: 0
+ */
+int
+get_text(char* sub_text, int start_index, int end_index){
+
+    for(int i = 0; i<end_index-start_index; i++){
+        sub_text[i]=user_params.line_data[start_index+i];
+    }
+    return 0;
+}
+/*
+ * Function: correct_index
+ * --------------------
+ *  Funkce upraví hodnotu indexu podle toho v jakém sloupci se s indexem pracuje
+ *
+ *  index: 
+ *
+ *  p_end_index:  
+ *
+ *  selected_col:
+ *
+ *  p_correction:
+ *
+ *  returns: Při chybě -1
+ */
+int
+correct_index(int index, int *p_end_index, int selected_col, int *p_correction){
+    //korekce indexu pro sloupce od 2
+    *p_correction = 1;
+    *p_end_index = 0;
+    //osetreni 1 sloupce + pokud je prazdny
+    if(index == 0){
+        if(user_params.line_data[0] == user_params.delim)
+            return -1;
+        *p_correction = 0;
+    }
+
+    if(selected_col == count_collumns()){
+        if((index+1) == get_len(user_params.line_data))
+            return -1;
+        //osetreni posledniho sloupce
+        *p_end_index = get_len(user_params.line_data);
+    }
+    else{
+        *p_end_index = get_delim_index(selected_col+1);
+    }
+    return 0;
+}
+/*
+ * Function: irow
+ * --------------------
+ *  Vloží řádek tabulky před určený řádek
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 irow(int last_line){
     (void)last_line;
@@ -358,7 +588,16 @@ irow(int last_line){
 
     return 0;
 }
-int
+/*
+ * Function: drow
+ * --------------------
+ *  Odstraní řádek
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int //TODO: CHECK VSTUP DOPIČI
 drow(int last_line){
     (void)last_line;
 
@@ -372,6 +611,15 @@ drow(int last_line){
 
     return 0;
 }
+/*
+ * Function: drows
+ * --------------------
+ *  Odstraní řádky
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 drows(int last_line){
     (void)last_line;
@@ -389,21 +637,16 @@ drows(int last_line){
 
     return 0;
 }
-//vrati index n-teho delimu
-int get_delim_index(int order){
-    int appear = 0; //vyskyt delimu v radku
-    for(int i = 0; i<LINE_DATA_LEN; i++){
-        if(user_params.line_data[i] == user_params.delim){
-            appear++;
-        }
-        if(appear >= order-1){
-            return i;
-        }
-    }
-    return -1;
-}
-
-int //vlozi novy radek na konec souboru
+/*
+ * Function: arow
+ * --------------------
+ *  Přidá řádek na konec souboru
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int
 arow(int last_line){
     if (!last_line){
         return 0;
@@ -420,16 +663,24 @@ arow(int last_line){
     }
     return 0;
 }
-int //vlozi prazdny sloupec pred sloupec C
+/*
+ * Function: icol
+ * --------------------
+ *  Přidá sloupec před určený sloupec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int
 icol(int last_line){
     (void)last_line;
 
-    int edit_size = 1; //delka delim
+    int edit_size = 1;
 
     if (check_for_space(edit_size) != 0)
         return -1;
 
-    //ziska index n-teho delimu
     int index = get_delim_index(atoi(user_params.arguments[0]));
 
     if(index == -1)
@@ -443,10 +694,19 @@ icol(int last_line){
     insert_text(arr,index,index);
     return 0;
 }
+/*
+ * Function: acol
+ * --------------------
+ *  Přidá prázdný sloupec za poslední sloupec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 acol(int last_line){
     (void)last_line;
-    int edit_size = 1; //delka delim
+    int edit_size = 1;
 
     if (check_for_space(edit_size) != 0)
         return -1;
@@ -457,8 +717,16 @@ acol(int last_line){
     user_params.line_data[get_len(user_params.line_data)]=user_params.delim;
     return 0;
 }
-
-int //odstrani sloupec N
+/*
+ * Function: dcol
+ * --------------------
+ *  Odstraní sloupec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int
 dcol(int last_line){
     (void)last_line;
     int selected_col = atoi(user_params.arguments[0]);
@@ -489,7 +757,16 @@ dcol(int last_line){
     }
     return 0;
 }
-int //smaze sloupce mezi N a M
+/*
+ * Function: dcols
+ * --------------------
+ *  Odstraní vybrané sloupce
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int
 dcols(int last_line){
     (void)last_line;
 
@@ -499,7 +776,7 @@ dcols(int last_line){
     int selected_col1 = atoi(user_params.arguments[0]);
     int selected_col2 = atoi(user_params.arguments[1]);
 
-    if(selected_col1>selected_col2) //N<=M
+    if(selected_col1>selected_col2)
         return -1;
 
     if(selected_col2>count_collumns())
@@ -512,42 +789,29 @@ dcols(int last_line){
 
     return 0;
 }
+/*
+ * Function: cset
+ * --------------------
+ *  Do vybrané buňky bude nastaven vybraný řetězec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 cset(int last_line){
     (void)last_line;
     return -1;
 }
-int //vrati text mezi zadanymi indexy
-get_text(char* sub_text, int start_index, int end_index){
-
-    for(int i = 0; i<end_index-start_index; i++){
-        sub_text[i]=user_params.line_data[start_index+i];
-    }
-    return 0;
-}
-int //funkce upravi hodnotu indexu podle toho v jakem sloupci se s indexem pracuje
-correct_index(int index, int *p_end_index, int selected_col, int *p_correction){
-    //korekce indexu pro sloupce od 2
-    *p_correction = 1;
-    *p_end_index = 0;
-    //osetreni 1 sloupce + pokud je prazdny
-    if(index == 0){
-        if(user_params.line_data[0] == user_params.delim)
-            return -1;
-        *p_correction = 0;
-    }
-
-    if(selected_col == count_collumns()){
-        if((index+1) == get_len(user_params.line_data))
-            return -1;
-        //osetreni posledniho sloupce
-        *p_end_index = get_len(user_params.line_data);
-    }
-    else{
-        *p_end_index = get_delim_index(selected_col+1);
-    }
-    return 0;
-}
+/*
+ * Function: to_lower
+ * --------------------
+ *  Řetězec ve vybraném sloupci bude převeden na malá písmena
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 to_lower(int last_line){
     (void)last_line;
@@ -562,7 +826,7 @@ to_lower(int last_line){
     char sub_text[end_index-index+1];
     memset(sub_text, 0, sizeof sub_text);
     get_text(sub_text,index+correction,end_index);
-    //uprava textu ve sloupci
+
     for(int i=0; i<get_len(sub_text); i++){
         sub_text[i]=tolower(sub_text[i]);
     }
@@ -571,6 +835,15 @@ to_lower(int last_line){
 
     return 0;
 }
+/*
+ * Function: to_upper
+ * --------------------
+ *  Řetězec ve vybraném sloupci bude převeden na velká písmena
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 to_upper(int last_line){
     (void)last_line;
@@ -585,7 +858,7 @@ to_upper(int last_line){
     char sub_text[end_index-index+1];
     memset(sub_text, 0, sizeof sub_text);
     get_text(sub_text,index+correction,end_index);
-    //uprava textu ve sloupci
+
     for(int i=0; i<get_len(sub_text); i++){
         sub_text[i]=toupper(sub_text[i]);
     }
@@ -593,6 +866,15 @@ to_upper(int last_line){
 
     return 0;
 }
+/*
+ * Function: roundup
+ * --------------------
+ *  Ve vybraném sloupci se zaokrouhlí číslo na celé číslo
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 roundup(int last_line){
     (void)last_line;
@@ -609,7 +891,7 @@ roundup(int last_line){
     char sub_text[end_index-index+1];
     memset(sub_text, 0, sizeof sub_text);
     get_text(sub_text,index+correction,end_index);
-    //uprava textu ve sloupci
+
     char *pend;
     float f1 = strtof(sub_text, &pend);
 
@@ -621,16 +903,43 @@ roundup(int last_line){
 
     return 0;
 }
+/*
+ * Function: copy
+ * --------------------
+ *  Přepíše obsah buněk ve vybraném sloupci hodnotami ze jiného sloupce
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 copy(int last_line){
     (void)last_line;
     return -1;
 }
+/*
+ * Function: swap
+ * --------------------
+ *  Zamění hodnoty buněk ve vybraných sloupcích
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 swap(int last_line){
     (void)last_line;
     return -1;
 }
+/*
+ * Function: move
+ * --------------------
+ *  Přesune vybraná sloupec před druhý sloupec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 move(int last_line){
     (void)last_line;
