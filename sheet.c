@@ -1197,6 +1197,15 @@ cavg(int last_line){
     (void)last_line;
     return -1;
 }
+/*
+ * Function: cmin 
+ * --------------------
+ *  Do vynbrané buňky bude uloženo číslo reprezentující min hodnotu buněk na stejném řádku
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 cmin(int last_line){
     (void)last_line;
@@ -1232,6 +1241,15 @@ cmin(int last_line){
 
     return 0;
 }
+/*
+ * Function: cmax 
+ * --------------------
+ *  Do vynbrané buňky bude uloženo číslo reprezentující max hodnotu buněk na stejném řádku
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 cmax(int last_line){
     (void)last_line;
@@ -1307,6 +1325,15 @@ rcount(int last_line){
     (void)last_line;
     return -1;
 }
+/*
+ * Function: rows 
+ * --------------------
+ *  Upřesní které řádky budou upraveny 
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Vrací 0 když se má řádek upravit, jinak -1 
+ */
 int
 rows(int last_line){
     int n, m;
@@ -1322,7 +1349,7 @@ rows(int last_line){
     if (n == -1){
         if (last_line)
             return 0;
-        return 1;
+        return -1;
     }
 
     if (n<=user_params.line_number && user_params.line_number<=m)
@@ -1335,6 +1362,15 @@ rows(int last_line){
 
     return -1;
 }
+/*
+ * Function: beginswith 
+ * --------------------
+ *  Procesor bude zpracovávat pouze ty řádky, jejichž obsah buňky ve vybraném sloupci začíná vybraným řetězcem
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Vrací 0 když se má řádek upravit, jinak -1 
+ */
 int
 beginswith(int last_line){
     (void)last_line;
@@ -1363,6 +1399,15 @@ beginswith(int last_line){
 
     return 0;
 }
+/*
+ * Function: contains 
+ * --------------------
+ *  Procesor bude zpracovávat pouze ty řádky, jejichž buňky ve vybraném sloupci obsahují vybraný řetězec
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Vrací 0 když se má řádek upravit, jinak -1 
+ */
 int
 contains(int last_line){
     (void)last_line;
