@@ -21,8 +21,8 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] copy 
 - [ ] swap
 - [ ] move
-- [ ] cmin - WIP 
-- [ ] cmax - WIP 
+- [x] cmin - Kikinovo 
+- [x] cmax - Kikinovo 
 - [x] cseq - nedelat 
 - [x] rseq - nedelat
 - [x] rows
