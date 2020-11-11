@@ -31,6 +31,9 @@ void find_arguments(int argc, char **argv);
 void separate_line_sel_from_args();
 int insert_text(char *text, int start_index, int end_index);
 int get_len(char *arr);
+int correct_index(int index, int *p_end_index, int selected_col, int *p_correction);
+int get_text(char* sub_text, int start_index, int end_index);
+
 
 int irow(int last_line);
 int arow(int last_line);
