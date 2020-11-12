@@ -16,7 +16,7 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] cset 
 - [x] tolower Checknout
 - [x] toupper Checknout
-- [x] round   Checknout
+- [x] roundup
 - [ ] int
 - [x] copy 
 - [x] swap
