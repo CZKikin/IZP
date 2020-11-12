@@ -1185,7 +1185,64 @@ swap(int last_line){
 int
 move(int last_line){
     (void)last_line;
-    return -1;
+    
+    int n_col = atoi(user_params.arguments[0]);
+    int m_col = atoi(user_params.arguments[1]);
+    int collumns = count_collumns();
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+	return -1;
+    int n_start_index = get_delim_index(n_col) + 1;
+    if(n_col ==1)
+	n_start_index = 0;
+
+    if(n_col==collumns){	
+	int end_of_line_index = 0; //kdeje /n
+        for(int i = 0; i<LINE_DATA_LEN; i++){
+    	    if(user_params.line_data[i] == 0){
+	   	 end_of_line_index=i;
+	   	 break;
+	   	 }	
+	}
+    	
+    	int m_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_index = 0;
+    	char n_text[end_of_line_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,end_of_line_index);
+        insert_text(":", m_index, m_index);
+    	insert_text(n_text, m_index, m_index);
+
+    	int n_text_size = get_len(n_text);
+	int new_end_of_line_index = 0; //kdeje /n
+        for(int i = 0; i<LINE_DATA_LEN; i++){
+    	    if(user_params.line_data[i] == 0){
+	   	 new_end_of_line_index=i;
+	   	 break;
+	   	 }	
+	}
+    	insert_text("", (new_end_of_line_index-n_text_size)-1, new_end_of_line_index);
+	return 0;
+    }else{
+    	int n_end_index = get_delim_index(n_col+1) + 1;
+    	int m_index = get_delim_index(m_col) + 1;
+    	if(m_col ==1)
+	    m_index = 0;
+    	char n_text[n_end_index-n_start_index+1];
+    	memset(n_text, 0, sizeof n_text);
+    	get_text(n_text,n_start_index,n_end_index);
+    	insert_text(n_text, m_index, m_index);
+    	int n_text_size = get_len(n_text);
+    	int delim_index = n_start_index + n_text_size;
+   
+    	if(n_col<m_col){
+    	    insert_text("", n_start_index, n_end_index);
+	    return 0;
+    	}else{
+    	    insert_text("", delim_index, (delim_index + n_text_size));
+   	    return 0;
+   	}
+    }	
 }
 int
 csum(int last_line){
