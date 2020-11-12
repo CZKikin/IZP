@@ -1585,6 +1585,12 @@ main(int argc, char **argv){
         line_sel = find_line_sel();
 
         chosen_command = find_command();
+        if (validate_second_command() == 0){
+            if(validate_second_command() == 0){
+                printf("This version supports only 2 commands\n\r"\
+                        "For sequential edits make a scipt...");
+            }
+        }
         if (chosen_command == NULL){
             printf("Unrecognized command!\n\r");
             return -1;
@@ -1603,17 +1609,30 @@ main(int argc, char **argv){
     if (line_sel == NULL){
         while (scan_input() != 1){
             if ((result = chosen_command(0)) != 0){
-        printf("Command failed, check your inputs!\n");
+                printf("Command failed, check your inputs!\n");
                 return -1;
         }
+            if(user_params.second_command != NULL){
+                if((result = user_params.second_command(0)) != 0){
+                    printf("Second command failed, check your inputs!\r\n");
+                    return -1;
+                }
+            }
             printf("%s\n", user_params.line_data);
         }
 
         if ((result = chosen_command(1)) != 0){
         printf("Command failed, check your inputs!\n");
             return -1;
-    }
+        }
 
+        if(user_params.second_command != NULL){
+                if((result = user_params.second_command(0)) != 0){
+                    printf("Second command failed, check your inputs!\r\n");
+                    return -1;
+                }
+        }
+        //No time to edit... worst code I have written in my 4 years of programming
     } else {
         separate_line_sel_from_args();
         while (scan_input() != 1){
