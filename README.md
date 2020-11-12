@@ -17,10 +17,10 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] tolower Checknout
 - [x] toupper Checknout
 - [x] round   Checknout
-- [ ] int pridat do seznamu
+- [ ] int
 - [x] copy 
-- [ ] swap
-- [ ] move
+- [x] swap
+- [x] move
 - [x] cmin - Kikinovo 
 - [x] cmax - Kikinovo 
 - [x] cseq - nedelat 
