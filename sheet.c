@@ -906,29 +906,41 @@ roundup(int last_line){
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
-    int end_index, correction;
+    int end_index;
+    if(selected_col>count_collumns())
+	return -1;
+    if(selected_col==count_collumns()){
+    	
+	int end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+    	end_index=end_of_line_index;
 
-    if(correct_index(index, &end_index, selected_col, &correction) == -1)
-        return 0;
-
+    }else{
+    	end_index=get_delim_index(selected_col+1);
+    }
     char sub_text[end_index-index+1];
     memset(sub_text, 0, sizeof sub_text);
-    get_text(sub_text,index+correction,end_index);
+    get_text(sub_text,index+1,end_index);
 
     char *pend;
     float f1 = strtof(sub_text, &pend);
-
-    //osetreni: nenic cislo nebo  prazdny sloupec
+    //osetreni: neni cislo nebo prazdny sloupec
+    
     if(get_len(pend)!=0)
-        return 0;
+	return 0;
 
     if(get_len(sub_text)==0)
-        return 0;
+	return 0;
 
     sprintf(sub_text, "%d", (int)round(f1));
-
-    insert_text(sub_text,index+correction,end_index);
-
+    if(selected_col==1)
+	index--;
+    insert_text(sub_text,index+1,end_index);
     return 0;
 }
 /*
