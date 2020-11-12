@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#define NUMBER_OF_COMMANDS (28)
+#define NUMBER_OF_COMMANDS (29)
 #define NUMBER_OF_LINE_SELS (3)
 #define NUMBER_OF_ARGUMENTS (10)
 #define LINE_DATA_LEN (10240)
@@ -65,6 +65,7 @@ int rcount(int last_line);
 int rows(int last_line);
 int beginswith(int last_line);
 int contains(int last_line);
+int to_int(int last_line);
 
 char commands[NUMBER_OF_COMMANDS][11] = {
     "irow",        /*0*/
@@ -93,7 +94,8 @@ char commands[NUMBER_OF_COMMANDS][11] = {
     "ravg",        /*24*/
     "rmin",        /*25*/
     "rmax",        /*26*/
-    "rcount"      /*27*/
+    "rcount",      /*27*/
+    "int"	 /*28*/
 };
 
 char line_selector_commands[NUMBER_OF_LINE_SELS][11] = {
@@ -129,7 +131,8 @@ int (*functions[NUMBER_OF_COMMANDS])() = {
    ravg,
    rmin,
    rmax,
-   rcount
+   rcount,
+   to_int
 };
 
 int (*line_sels[NUMBER_OF_LINE_SELS])() = {
@@ -1379,6 +1382,20 @@ rmax(int last_line){
 }
 int
 rcount(int last_line){
+    (void)last_line;
+    return -1;
+}
+/*
+ * Function: to_int
+ * --------------------
+ *  Odstraní desetinnou část čísla z vybraného sloupce
+ *
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
+int
+to_int(int last_line){
     (void)last_line;
     return -1;
 }
