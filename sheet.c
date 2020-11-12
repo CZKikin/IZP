@@ -903,8 +903,6 @@ to_upper(int last_line){
 int
 roundup(int last_line){
     (void)last_line;
-    if(last_line)
-        return -1;
 
     int selected_col = atoi(user_params.arguments[0]);
     int index = get_delim_index(selected_col);
@@ -920,7 +918,12 @@ roundup(int last_line){
     char *pend;
     float f1 = strtof(sub_text, &pend);
 
-    //TODO: osetrit pokud ve sloupci neni cislo
+    //osetreni: nenic cislo nebo  prazdny sloupec
+    if(get_len(pend)!=0)
+        return 0;
+
+    if(get_len(sub_text)==0)
+        return 0;
 
     sprintf(sub_text, "%d", (int)round(f1));
 
