@@ -692,9 +692,6 @@ icol(int last_line){
     if(index == -1)
         return -1;
 
-    if(last_line)
-        return -1;
-
     char arr[2];
     arr[0]=user_params.delim;
     insert_text(arr,index,index);
