@@ -923,8 +923,12 @@ roundup(int last_line){
     }
     char sub_text[end_index-index+1];
     memset(sub_text, 0, sizeof sub_text);
+    
+    if(selected_col==1){
+	    get_text(sub_text,index,end_index);
+    }else{
     get_text(sub_text,index+1,end_index);
-
+    }
     char *pend;
     float f1 = strtof(sub_text, &pend);
     //osetreni: neni cislo nebo prazdny sloupec
@@ -1409,8 +1413,54 @@ rcount(int last_line){
  */
 int
 to_int(int last_line){
+    
     (void)last_line;
-    return -1;
+
+    int selected_col = atoi(user_params.arguments[0]);
+    int index = get_delim_index(selected_col);
+    int end_index;
+    if(selected_col>count_collumns())
+	return -1;
+    if(selected_col==count_collumns()){
+    	
+	int end_of_line_index = 0; //kdeje /n
+	for(int i = 0; i<LINE_DATA_LEN; i++){
+	    if(user_params.line_data[i] == 0){
+		 end_of_line_index=i;
+	  	 break;
+		 }	
+        }
+    	end_index=end_of_line_index;
+
+    }else{
+    	end_index=get_delim_index(selected_col+1);
+    }
+    char sub_text[end_index-index+1];
+    memset(sub_text, 0, sizeof sub_text);
+    if(selected_col==1){
+	    get_text(sub_text,index,end_index);
+    }else{
+    get_text(sub_text,index+1,end_index);
+    }
+
+    char *pend;
+    float f1 = strtof(sub_text, &pend);
+    int ffinal = ((int)(f1*10))/10.0;
+    printf("tutuaj %d |", ffinal);
+    //osetreni: neni cislo nebo prazdny sloupec
+    
+   
+    if(get_len(pend)!=0)
+	return 0;
+
+    if(get_len(sub_text)==0)
+	return 0;
+
+    sprintf(sub_text, "%d", ffinal);
+    if(selected_col==1)
+	index--;
+    insert_text(sub_text,index+1,end_index);
+    return 0;
 }
 /*
  * Function: rows 
