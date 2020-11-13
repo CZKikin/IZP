@@ -1446,7 +1446,6 @@ to_int(int last_line){
     char *pend;
     float f1 = strtof(sub_text, &pend);
     int ffinal = ((int)(f1*10))/10.0;
-    printf("tutuaj %d |", ffinal);
     //osetreni: neni cislo nebo prazdny sloupec
     
    
