@@ -663,7 +663,7 @@ arow(int last_line){
 
         char str_for_strncat[2] = {user_params.delim, '\0'};
         strncat(user_params.line_data, "\n", 2);
-        for (int i=0; i<=user_params.delims_count; i++)
+        for (int i=0; i<user_params.delims_count; i++)
             strncat(user_params.line_data, str_for_strncat, 1);
 
     }
@@ -691,6 +691,7 @@ icol(int last_line){
 
     if(index == -1)
         return -1;
+
 
     char arr[2];
     arr[0]=user_params.delim;

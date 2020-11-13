@@ -63,7 +63,7 @@ tab4 = """Tyden:Cviceni:Bodu:Projekt
 11:Iterace, rekurze:2:
 12::0:Obhajoba 2
 13:Dynamicke struktury:2:
-:celkem bodu:::
+:celkem bodu::
 """
 
 tab5 = """Tyden:Cviceni:Bodu:Projekt
@@ -92,7 +92,7 @@ with open("tab2.txt","r") as f:
     subprocess.call("rm tab1a.txt", shell=True)
 
 # Skipping tab3
-print("Skipping tab3 bo rseq a vojta to ma u sebe a nepushnul to")
+print("Skipping tab3: rseq not implemented")
 # subprocess.call("./sheet -d : rseq 1 2 - 1 <tab2.txt >tab3.txt", shell = True)
 # with open("tab3.txt","r") as f:
 #     if f.read()!=tab3:
@@ -110,9 +110,8 @@ with open("tab4.txt","r") as f:
         exit(-1)
     #subprocess.call("rm tab3.txt tab3a.txt",shell=True)
     subprocess.call("rm tab3a.txt",shell=True)
-    
 
-print("Skipping tab5 bo rsum neni implementovany :)")
+print("Skipping tab5: rsum not implemented ")
 # subprocess.call("./sheet -d : rsum 3 2 14 <tab4.txt >tab5.txt", shell = True)
 # with open("tab5.txt","r") as f:
 #     if f.read()!=tab5:
