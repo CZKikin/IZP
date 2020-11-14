@@ -1209,6 +1209,9 @@ move(int last_line){
     int n_col = atoi(user_params.arguments[0]);
     int m_col = atoi(user_params.arguments[1]);
     int collumns = count_collumns();
+    char delim_str[2]={user_params.delim,'\0'};
+   
+   
     if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
 	return -1;
     int n_start_index = get_delim_index(n_col) + 1;
@@ -1230,7 +1233,7 @@ move(int last_line){
     	char n_text[end_of_line_index-n_start_index+1];
     	memset(n_text, 0, sizeof n_text);
     	get_text(n_text,n_start_index,end_of_line_index);
-        insert_text(":", m_index, m_index);
+        insert_text(delim_str, m_index, m_index);
     	insert_text(n_text, m_index, m_index);
 
     	int n_text_size = get_len(n_text);
