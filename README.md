@@ -20,6 +20,8 @@
 - [x] cmax - Kikinovo 
 - [x] cseq - Vojtovo - not in repo 
 - [x] rseq - Vojtovo - not in repo
+- [x] csum - Danovo
+- [x] cavg - Danovo
 - [x] rows
 - [x] beginswith 
 - [x] contains 
