@@ -6,6 +6,8 @@
 #include <ctype.h>
 #include <math.h>
 
+/*github: https://github.com/CZKikin/IZP*/
+
 #define NUMBER_OF_COMMANDS (29)
 #define NUMBER_OF_LINE_SELS (3)
 #define NUMBER_OF_ARGUMENTS (10)
