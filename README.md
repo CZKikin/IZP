@@ -1,21 +1,16 @@
-# Zásady projektu
+# IZP
 
-Nejlépe dodržujme https://suckless.org/coding_style/ tento coding style
-je to pro naše dobro.  
-Dále bych byl rád, aby si KAŽDÝ z nás udělal vlastní branch a poté co udělá
-funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z důvodu
-čitelnosti a následné další práce s kódem.
 - [x] irow 
-- [x] arow  Checknout
-- [x] drow  Checknout
-- [x] drows Checknout
-- [x] icol  Checknout
-- [x] acol  Checknout
-- [x] dcol  Checknout
-- [x] dcols Checknout
+- [x] arow
+- [x] drow
+- [x] drows
+- [x] icol 
+- [x] acol 
+- [x] dcol  
+- [x] dcols 
 - [x] cset 
-- [x] tolower Checknout
-- [x] toupper Checknout
+- [x] tolower
+- [x] toupper
 - [x] roundup
 - [x] int
 - [x] copy 
@@ -23,8 +18,8 @@ funkční změnu vytvořil pull req. alespoň se dvěma ostatníma chábrama. Z 
 - [x] move
 - [x] cmin - Kikinovo 
 - [x] cmax - Kikinovo 
-- [x] cseq - nedelat 
-- [x] rseq - nedelat
+- [x] cseq - Vojtovo - not in repo 
+- [x] rseq - Vojtovo - not in repo
 - [x] rows
 - [x] beginswith 
 - [x] contains 
