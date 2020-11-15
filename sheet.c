@@ -580,6 +580,8 @@ int
 irow(int last_line){
     (void)last_line;
     int selected_row = atoi(user_params.arguments[0]);
+    if (selected_row == 0)
+        return -1;
 
     if(user_params.line_number == selected_row){
         int edit_size = user_params.delims_count;
@@ -605,11 +607,13 @@ irow(int last_line){
  *
  *  returns: Při chybě -1
  */
-int //TODO: CHECK VSTUP DOPIČI
+int 
 drow(int last_line){
     (void)last_line;
 
     int selected_row = atoi(user_params.arguments[0]);
+    if (selected_row == 0)
+        return -1;
 
     if(user_params.line_number == selected_row){
 
@@ -634,6 +638,8 @@ drows(int last_line){
 
     int selected_row1 = atoi(user_params.arguments[0]);
     int selected_row2 = atoi(user_params.arguments[1]);
+    if (selected_row1 == 0 || selected_row2 == 0)
+        return -1;
 
     if(selected_row1>selected_row2) //N<=M
         return -1;
@@ -718,7 +724,7 @@ acol(int last_line){
         return -1;
 
     if (last_line)
-        return -1;
+        return 0;
 
     user_params.line_data[get_len(user_params.line_data)]=user_params.delim;
     return 0;
@@ -736,6 +742,8 @@ int
 dcol(int last_line){
     (void)last_line;
     int selected_col = atoi(user_params.arguments[0]);
+    if (selected_col == 0)
+        return -1;
     int cols = count_collumns();
 
     if(selected_col>cols)
@@ -777,7 +785,7 @@ dcols(int last_line){
     (void)last_line;
 
     if(last_line)
-        return -1;
+        return 0;
 
     int selected_col1 = atoi(user_params.arguments[0]);
     int selected_col2 = atoi(user_params.arguments[1]);
@@ -1875,7 +1883,8 @@ main(int argc, char **argv){
                     return -1;
                 }
             }
-            printf("%s\n", user_params.line_data);
+            if(user_params.line_data[0] != '\0')
+                printf("%s\n", user_params.line_data);
         }
 
         if ((result = chosen_command(1)) != 0){
@@ -1899,7 +1908,8 @@ main(int argc, char **argv){
                     return -1;
         }
             }
-            printf("%s\n", user_params.line_data);
+            if(user_params.line_data[0] != '\0')
+                printf("%s\n", user_params.line_data);
         }
         if (line_sel(1) == 0){
             if ((result = chosen_command(1)) != 0){
@@ -1909,6 +1919,7 @@ main(int argc, char **argv){
         }
     }
 
-    printf("%s\n", user_params.line_data);
+    if(user_params.line_data[0] != '\0')
+        printf("%s\n", user_params.line_data);
     return 0;
 }
