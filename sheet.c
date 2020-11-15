@@ -1267,10 +1267,71 @@ move(int last_line){
    	}
     }	
 }
+/*
+ * Function: csum 
+ * --------------------
+ *  Do vybrané buňky C bude uložena suma čísel od sloupce N po sloupec M na stejném řádku
+ *  
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 csum(int last_line){
     (void)last_line;
-    return -1;
+    
+    int c_col = atoi(user_params.arguments[0]);
+    int n_par = atoi(user_params.arguments[1]);
+    int m_par = atoi(user_params.arguments[2]);
+    int collumns = count_collumns();
+    int n_to_m = 0;
+    int cell_start_index;
+    int cell_end_index;
+    int step_add=0;
+    double final_number=0;
+    char char_final_number[ARG_LEN];
+    if((n_par==m_par)||(n_par==c_col)||(m_par==c_col)||(n_par==0)||(m_par==0)||(c_col==0)) //osetreni vstupu
+	return -1;
+    if((collumns<n_par)||(collumns<m_par)||(collumns<c_col)||(n_par>m_par))
+	return -1;
+    if((c_col<m_par)&&(c_col>n_par))
+	return -1;
+
+    int c_col_start_index = get_delim_index(c_col) + 1; //TODO: osetreni pro posledni sloupec
+        if(c_col ==1)
+   	    c_col_start_index = 0;
+
+    int c_col_end_index = get_delim_index(c_col+1) + 1;
+
+    for(int i=n_par;i<m_par;i++){
+	n_to_m ++;
+    }
+    //printf("%d\n",n_to_m);
+    for(int i=0;i<n_to_m;i++){//TODO: osetreni pro prvni a posledni sloupec
+    	
+        cell_start_index = get_delim_index(n_par+step_add) + 1;
+        if(n_par ==1)
+   	    cell_start_index = 0;
+    	//printf("%d\n",cell_start_index);
+	cell_end_index = get_delim_index(n_par+1+step_add) + 1;
+    	char cell_text[cell_end_index-cell_start_index+1];
+    	memset(cell_text, 0, sizeof cell_text);
+    	get_text(cell_text,cell_start_index,cell_end_index-1);
+	step_add++;
+	//printf("cell text %s\n", cell_text);
+	char *end_ptr;
+	double cell_number=strtod(cell_text,&end_ptr);
+	//printf("cell number %lf\n", cell_number);
+	final_number=final_number+cell_number;
+    }
+	//printf("final %lf\n", final_number);
+	
+     	//snprintf(char char_final_number, 100,"%f", final_number);
+	sprintf(char_final_number, "%f", final_number);
+	//printf("char %s\n", char_final_number);
+	insert_text(char_final_number, c_col_start_index, c_col_end_index-1);
+
+    return 0;
 }
 int
 cavg(int last_line){
