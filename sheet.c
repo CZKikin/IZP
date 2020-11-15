@@ -939,7 +939,7 @@ roundup(int last_line){
     if(get_len(sub_text)==0)
 	return 0;
 
-    sprintf(sub_text, "%d", (int)round(f1));
+    sprintf(sub_text, "%d", (int)(f1+0.5));
     if(selected_col==1)
 	index--;
     insert_text(sub_text,index+1,end_index);
@@ -1290,6 +1290,8 @@ csum(int last_line){
     int step_add=0;
     double final_number=0;
     char char_final_number[ARG_LEN];
+   
+    int end_of_line_index=0;
     if((n_par==m_par)||(n_par==c_col)||(m_par==c_col)||(n_par==0)||(m_par==0)||(c_col==0)) //osetreni vstupu
 	return -1;
     if((collumns<n_par)||(collumns<m_par)||(collumns<c_col)||(n_par>m_par))
@@ -1297,7 +1299,7 @@ csum(int last_line){
     if((c_col<m_par)&&(c_col>n_par))
 	return -1;
 
-    int c_col_start_index = get_delim_index(c_col) + 1; //TODO: osetreni pro posledni sloupec
+    int c_col_start_index = get_delim_index(c_col) + 1;
         if(c_col ==1)
    	    c_col_start_index = 0;
 
@@ -1307,26 +1309,58 @@ csum(int last_line){
 	n_to_m ++;
     }
     //printf("%d\n",n_to_m);
-    for(int i=0;i<n_to_m;i++){//TODO: osetreni pro prvni a posledni sloupec
+    for(int i=-1;i<n_to_m;i++){
     	
         cell_start_index = get_delim_index(n_par+step_add) + 1;
-        if(n_par ==1)
+        if(n_par ==1 && i==-1)
    	    cell_start_index = 0;
     	//printf("%d\n",cell_start_index);
-	cell_end_index = get_delim_index(n_par+1+step_add) + 1;
-    	char cell_text[cell_end_index-cell_start_index+1];
-    	memset(cell_text, 0, sizeof cell_text);
-    	get_text(cell_text,cell_start_index,cell_end_index-1);
-	step_add++;
-	//printf("cell text %s\n", cell_text);
-	char *end_ptr;
-	double cell_number=strtod(cell_text,&end_ptr);
-	//printf("cell number %lf\n", cell_number);
-	final_number=final_number+cell_number;
+	
+	if(m_par==collumns && i+1==n_to_m){
+	    end_of_line_index = 0; //kdeje /n
+            for(int i = 0; i<LINE_DATA_LEN; i++){
+    	        if(user_params.line_data[i] == 0){
+	   	     end_of_line_index=i;
+	   	     break;
+	   	 }	
+	    }
+   	    char cell_text[end_of_line_index-cell_start_index+1];
+    	    memset(cell_text, 0, sizeof cell_text);
+    	    get_text(cell_text,cell_start_index,end_of_line_index);
+	    step_add++;
+	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
+	        continue;
+	    
+	    //printf("cell text %s\n", cell_text);
+	    char *end_ptr;
+	    double cell_number=strtod(cell_text,&end_ptr);
+	    if (get_len(end_ptr)==0)
+	    	final_number=final_number+cell_number;
+	    //printf("cell number %lf\n", cell_number);
+	    //final_number=final_number+cell_number;
+    	}else{
+	    cell_end_index = get_delim_index(n_par+1+step_add) + 1;
+    	    char cell_text[cell_end_index-cell_start_index+1];
+    	    memset(cell_text, 0, sizeof cell_text);
+    	    get_text(cell_text,cell_start_index,cell_end_index-1);
+	    //printf("%s\n", cell_text);
+	    step_add++;
+	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
+	        continue;
+	    //printf("cell text %s\n", cell_text);
+	    char *end_ptr;
+	    double cell_number=strtod(cell_text,&end_ptr);
+	    if(get_len(end_ptr)==0)
+		 final_number=final_number+cell_number;
+	    //printf("cell number %lf\n", cell_number);
+	    //final_number=final_number+cell_number;
+    	}
     }
 	//printf("final %lf\n", final_number);
 	
      	//snprintf(char char_final_number, 100,"%f", final_number);
+	if(final_number==0)
+	   return 0;
 	sprintf(char_final_number, "%f", final_number);
 	//printf("char %s\n", char_final_number);
 	insert_text(char_final_number, c_col_start_index, c_col_end_index-1);
@@ -1336,7 +1370,101 @@ csum(int last_line){
 int
 cavg(int last_line){
     (void)last_line;
-    return -1;
+    int c_col = atoi(user_params.arguments[0]);
+    int n_par = atoi(user_params.arguments[1]);
+    int m_par = atoi(user_params.arguments[2]);
+    int collumns = count_collumns();
+    int n_to_m = 0;
+    int cell_start_index;
+    int cell_end_index;
+    int step_add=0;
+    double final_number=0;
+    char char_final_number[ARG_LEN];
+    int devider =0;
+    int end_of_line_index=0;
+    if((n_par==m_par)||(n_par==c_col)||(m_par==c_col)||(n_par==0)||(m_par==0)||(c_col==0)) //osetreni vstupu
+	return -1;
+    if((collumns<n_par)||(collumns<m_par)||(collumns<c_col)||(n_par>m_par))
+	return -1;
+    if((c_col<m_par)&&(c_col>n_par))
+	return -1;
+
+    int c_col_start_index = get_delim_index(c_col) + 1;
+        if(c_col ==1)
+   	    c_col_start_index = 0;
+
+    int c_col_end_index = get_delim_index(c_col+1) + 1;
+
+    for(int i=n_par;i<m_par;i++){
+	n_to_m ++;
+    }
+    //printf("%d\n",n_to_m);
+    for(int i=-1;i<n_to_m;i++){
+    	
+        cell_start_index = get_delim_index(n_par+step_add) + 1;
+        if(n_par ==1 && i==-1)
+   	    cell_start_index = 0;
+    	//printf("%d\n",cell_start_index);
+	
+	if(m_par==collumns && i+1==n_to_m){
+	    end_of_line_index = 0; //kdeje /n
+            for(int i = 0; i<LINE_DATA_LEN; i++){
+    	        if(user_params.line_data[i] == 0){
+	   	     end_of_line_index=i;
+	   	     break;
+	   	 }	
+	    }
+   	    char cell_text[end_of_line_index-cell_start_index+1];
+    	    memset(cell_text, 0, sizeof cell_text);
+    	    get_text(cell_text,cell_start_index,end_of_line_index);
+	    step_add++;
+	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
+	        continue;
+	    
+	    //printf("cell text %s\n", cell_text);
+	    char *end_ptr;
+	    double cell_number=strtod(cell_text,&end_ptr);
+	    if (get_len(end_ptr)==0){
+	    	final_number=final_number+cell_number;
+	        devider++;
+	    }
+	    //printf("cell number %lf\n", cell_number);
+	    //final_number=final_number+cell_number;
+	    	devider++;
+    	}else{
+	    cell_end_index = get_delim_index(n_par+1+step_add) + 1;
+    	    char cell_text[cell_end_index-cell_start_index+1];
+    	    memset(cell_text, 0, sizeof cell_text);
+    	    get_text(cell_text,cell_start_index,cell_end_index-1);
+	    //printf("%s\n", cell_text);
+	    step_add++;
+	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
+	        continue;
+	    //printf("cell text %s\n", cell_text);
+	    char *end_ptr;
+	    double cell_number=strtod(cell_text,&end_ptr);
+	    if(get_len(end_ptr)==0){
+		 final_number=final_number+cell_number;
+	         devider++;
+	    }
+	    //printf("cell number %lf\n", cell_number);
+	    //final_number=final_number+cell_number;
+    	}
+    }
+	//printf("final %lf\n", final_number);
+	
+     	//snprintf(char char_final_number, 100,"%f", final_number);
+	if(final_number==0)
+	   return 0;
+	final_number=final_number/devider;
+	sprintf(char_final_number, "%f", final_number);
+	//printf("char %s\n", char_final_number);
+	insert_text(char_final_number, c_col_start_index, c_col_end_index-1);
+
+    return 0;
+
+ 
+
 }
 /*
  * Function: cmin 
