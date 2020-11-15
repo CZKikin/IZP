@@ -1095,13 +1095,12 @@ swap(int last_line){
         char m_text[m_end_index-m_start_index + 1];
         memset(m_text, 0, sizeof m_text);
         get_text(m_text,m_start_index,m_end_index-1);
-        //printf("NTEXT %s MTEXT %s\n", n_text, m_text);
         insert_text(n_text, m_start_index, m_end_index-1);
 	//osetreni pokud je N>M ...nove indexy
         int n_n_start_index = get_delim_index(n_col) + 1;
         if(n_col ==1)
    	    n_n_start_index = 0;
-	int new_end_of_line_index = 0; //kdeje /n
+	int new_end_of_line_index = 0; //kde je /n (zisk indexu konce radku)
 	for(int i = 0; i<LINE_DATA_LEN; i++){
 	    if(user_params.line_data[i] == 0){
 		 new_end_of_line_index=i;
@@ -1116,7 +1115,7 @@ swap(int last_line){
 
     }else if(m_col == collumns){ //osetreni pokud je M==collumns
 
-	int end_of_line_index = 0; //kdeje /n
+	int end_of_line_index = 0; //kde je /n (zisk indexu konce radku)
         for(int i = 0; i<LINE_DATA_LEN; i++){
     	    if(user_params.line_data[i] == 0){
 	   	 end_of_line_index=i;
@@ -1127,7 +1126,7 @@ swap(int last_line){
     	int m_end_index = end_of_line_index;
 	
         int n_start_index = get_delim_index(n_col) + 1;
-        if(n_col ==1)
+        if(n_col ==1) //pohlidani prvnich bunek radku
 	    n_start_index = 0;
 
         int n_end_index = get_delim_index(n_col+1) + 1;
@@ -1144,7 +1143,7 @@ swap(int last_line){
         insert_text(n_text, m_start_index, m_end_index);
         insert_text(m_text, n_start_index, n_end_index-1);
         return 0;
-    }else if(n_col > m_col){
+    }else if(n_col > m_col){ //pokud je N>M indexy
     	int n_start_index = get_delim_index(n_col) + 1;
     	if(n_col ==1)
 	    n_start_index = 0;
@@ -1212,14 +1211,14 @@ move(int last_line){
     char delim_str[2]={user_params.delim,'\0'};
    
    
-    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col))
+    if((n_col == m_col) || (n_col == 0) || (m_col == 0) || (collumns < n_col) || (collumns < m_col)) //osetreni vstupu
 	return -1;
     int n_start_index = get_delim_index(n_col) + 1;
     if(n_col ==1)
 	n_start_index = 0;
 
-    if(n_col==collumns){	
-	int end_of_line_index = 0; //kdeje /n
+    if(n_col==collumns){ //osetreni pokud je n_coll na konci radku
+	int end_of_line_index = 0; //kde je \n (index konce radku)
         for(int i = 0; i<LINE_DATA_LEN; i++){
     	    if(user_params.line_data[i] == 0){
 	   	 end_of_line_index=i;
@@ -1228,23 +1227,23 @@ move(int last_line){
 	}
     	
     	int m_index = get_delim_index(m_col) + 1;
-    	if(m_col ==1)
+    	if(m_col ==1) //osetreni indexu pokud je m_col 1.bunka
 	    m_index = 0;
     	char n_text[end_of_line_index-n_start_index+1];
     	memset(n_text, 0, sizeof n_text);
-    	get_text(n_text,n_start_index,end_of_line_index);
-        insert_text(delim_str, m_index, m_index);
+    	get_text(n_text,n_start_index,end_of_line_index); //zisk textu z bunky
+        insert_text(delim_str, m_index, m_index); //vkladani textu do bunky
     	insert_text(n_text, m_index, m_index);
 
-    	int n_text_size = get_len(n_text);
-	int new_end_of_line_index = 0; //kdeje /n
+    	int n_text_size = get_len(n_text); //delka textu
+	int new_end_of_line_index = 0; //kde je /n (novy index konce radku)
         for(int i = 0; i<LINE_DATA_LEN; i++){
     	    if(user_params.line_data[i] == 0){
 	   	 new_end_of_line_index=i;
 	   	 break;
 	   	 }	
 	}
-    	insert_text("", (new_end_of_line_index-n_text_size)-1, new_end_of_line_index);
+    	insert_text("", (new_end_of_line_index-n_text_size)-1, new_end_of_line_index);//prepis stare bunky
 	return 0;
     }else{
     	int n_end_index = get_delim_index(n_col+1) + 1;
@@ -1258,7 +1257,7 @@ move(int last_line){
     	int n_text_size = get_len(n_text);
     	int delim_index = n_start_index + n_text_size;
    
-    	if(n_col<m_col){
+    	if(n_col<m_col){ //pohlidani indexu
     	    insert_text("", n_start_index, n_end_index);
 	    return 0;
     	}else{
@@ -1299,25 +1298,23 @@ csum(int last_line){
     if((c_col<m_par)&&(c_col>n_par))
 	return -1;
 
-    int c_col_start_index = get_delim_index(c_col) + 1;
+    int c_col_start_index = get_delim_index(c_col) + 1; //zisk indexu
         if(c_col ==1)
    	    c_col_start_index = 0;
 
     int c_col_end_index = get_delim_index(c_col+1) + 1;
 
-    for(int i=n_par;i<m_par;i++){
+    for(int i=n_par;i<m_par;i++){ //pocet skoku
 	n_to_m ++;
     }
-    //printf("%d\n",n_to_m);
     for(int i=-1;i<n_to_m;i++){
     	
         cell_start_index = get_delim_index(n_par+step_add) + 1;
         if(n_par ==1 && i==-1)
    	    cell_start_index = 0;
-    	//printf("%d\n",cell_start_index);
 	
-	if(m_par==collumns && i+1==n_to_m){
-	    end_of_line_index = 0; //kdeje /n
+	if(m_par==collumns && i+1==n_to_m){ //osetreni pro posledni bunku, pokud je na konci radku
+	    end_of_line_index = 0; //kde je /n (zjisteni end indexu radku)
             for(int i = 0; i<LINE_DATA_LEN; i++){
     	        if(user_params.line_data[i] == 0){
 	   	     end_of_line_index=i;
@@ -1326,47 +1323,46 @@ csum(int last_line){
 	    }
    	    char cell_text[end_of_line_index-cell_start_index+1];
     	    memset(cell_text, 0, sizeof cell_text);
-    	    get_text(cell_text,cell_start_index,end_of_line_index);
+    	    get_text(cell_text,cell_start_index,end_of_line_index); //zisk textu z bunky
 	    step_add++;
 	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
 	        continue;
 	    
-	    //printf("cell text %s\n", cell_text);
 	    char *end_ptr;
 	    double cell_number=strtod(cell_text,&end_ptr);
 	    if (get_len(end_ptr)==0)
 	    	final_number=final_number+cell_number;
-	    //printf("cell number %lf\n", cell_number);
-	    //final_number=final_number+cell_number;
     	}else{
 	    cell_end_index = get_delim_index(n_par+1+step_add) + 1;
     	    char cell_text[cell_end_index-cell_start_index+1];
     	    memset(cell_text, 0, sizeof cell_text);
     	    get_text(cell_text,cell_start_index,cell_end_index-1);
-	    //printf("%s\n", cell_text);
 	    step_add++;
 	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
 	        continue;
-	    //printf("cell text %s\n", cell_text);
 	    char *end_ptr;
 	    double cell_number=strtod(cell_text,&end_ptr);
 	    if(get_len(end_ptr)==0)
 		 final_number=final_number+cell_number;
-	    //printf("cell number %lf\n", cell_number);
-	    //final_number=final_number+cell_number;
     	}
     }
-	//printf("final %lf\n", final_number);
 	
-     	//snprintf(char char_final_number, 100,"%f", final_number);
 	if(final_number==0)
 	   return 0;
-	sprintf(char_final_number, "%f", final_number);
-	//printf("char %s\n", char_final_number);
+	sprintf(char_final_number, "%f", final_number); //prevod na char
 	insert_text(char_final_number, c_col_start_index, c_col_end_index-1);
 
     return 0;
 }
+/*
+ * Function: cavg 
+ * --------------------
+ *  Do vybrané buňky C bude uložena aritmetický průměr čísel od sloupce N po sloupec M na stejném řádku
+ *  
+ *  last_line: Indikátor posledního řádku
+ *
+ *  returns: Při chybě -1
+ */
 int
 cavg(int last_line){
     (void)last_line;
@@ -1389,25 +1385,23 @@ cavg(int last_line){
     if((c_col<m_par)&&(c_col>n_par))
 	return -1;
 
-    int c_col_start_index = get_delim_index(c_col) + 1;
+    int c_col_start_index = get_delim_index(c_col) + 1; //zisk indexu
         if(c_col ==1)
    	    c_col_start_index = 0;
 
     int c_col_end_index = get_delim_index(c_col+1) + 1;
 
-    for(int i=n_par;i<m_par;i++){
+    for(int i=n_par;i<m_par;i++){ //pocet skoku
 	n_to_m ++;
     }
-    //printf("%d\n",n_to_m);
-    for(int i=-1;i<n_to_m;i++){
+    for(int i=-1;i<n_to_m;i++){ //poslupne prochazeni bunek od N do M
     	
         cell_start_index = get_delim_index(n_par+step_add) + 1;
-        if(n_par ==1 && i==-1)
+        if(n_par ==1 && i==-1) //osetreni pro index 1.bunky
    	    cell_start_index = 0;
-    	//printf("%d\n",cell_start_index);
 	
-	if(m_par==collumns && i+1==n_to_m){
-	    end_of_line_index = 0; //kdeje /n
+	if(m_par==collumns && i+1==n_to_m){ //osetreni pro posledni bunku, pokud je na konci radku
+	    end_of_line_index = 0; //kde je /n (zjisteni indexu konce radku)
             for(int i = 0; i<LINE_DATA_LEN; i++){
     	        if(user_params.line_data[i] == 0){
 	   	     end_of_line_index=i;
@@ -1421,45 +1415,33 @@ cavg(int last_line){
 	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
 	        continue;
 	    
-	    //printf("cell text %s\n", cell_text);
 	    char *end_ptr;
 	    double cell_number=strtod(cell_text,&end_ptr);
 	    if (get_len(end_ptr)==0){
-	    	final_number=final_number+cell_number;
+	    	final_number=final_number+cell_number; // pricitani bunky k vysledku
 	        devider++;
 	    }
-	    //printf("cell number %lf\n", cell_number);
-	    //final_number=final_number+cell_number;
-	    	devider++;
     	}else{
 	    cell_end_index = get_delim_index(n_par+1+step_add) + 1;
     	    char cell_text[cell_end_index-cell_start_index+1];
     	    memset(cell_text, 0, sizeof cell_text);
     	    get_text(cell_text,cell_start_index,cell_end_index-1);
-	    //printf("%s\n", cell_text);
 	    step_add++;
 	    if(get_len(cell_text)==0) //osetreni prazdneho cellu
 	        continue;
-	    //printf("cell text %s\n", cell_text);
 	    char *end_ptr;
 	    double cell_number=strtod(cell_text,&end_ptr);
 	    if(get_len(end_ptr)==0){
-		 final_number=final_number+cell_number;
+		 final_number=final_number+cell_number; //pricitani bunky k vysledku
 	         devider++;
 	    }
-	    //printf("cell number %lf\n", cell_number);
-	    //final_number=final_number+cell_number;
     	}
     }
-	//printf("final %lf\n", final_number);
-	
-     	//snprintf(char char_final_number, 100,"%f", final_number);
-	if(final_number==0)
+	if(final_number==0) //pokud je vysledek 0 tak se nezapise
 	   return 0;
-	final_number=final_number/devider;
-	sprintf(char_final_number, "%f", final_number);
-	//printf("char %s\n", char_final_number);
-	insert_text(char_final_number, c_col_start_index, c_col_end_index-1);
+	final_number=final_number/devider; //deleni vysledku poctem prictenych bunek
+	sprintf(char_final_number, "%f", final_number); //prevod na char
+	insert_text(char_final_number, c_col_start_index, c_col_end_index-1); //vypis do C bunky
 
     return 0;
 
