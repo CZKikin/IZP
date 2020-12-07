@@ -1,5 +1,5 @@
 # IZP
-Just another school project.
+Just another school project. Not finished. Reason: No time because of college.
 ## Simple commands: 
 - irow R - insert-row R: Row
 - arow - append-row
